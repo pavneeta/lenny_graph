@@ -22,11 +22,11 @@ Thumbs.db
 
 # Temporary/Intermediate files
 *.log
-job-*.jsonl
-transcripts_batch.json
-transcripts_batch.jsonl
-val_data.jsonl
-train_data.jsonl
+data/job-*.jsonl
+data/transcripts_batch.json
+data/transcripts_batch.jsonl
+data/val_data.jsonl
+data/train_data.jsonl
 episodes_extracted.json
 episodes_json/
 

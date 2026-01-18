@@ -44,26 +44,42 @@ An interactive 3D visualization tool for exploring Lenny's Podcast episodes and 
 - **Filter**: Use the dimension dropdowns to filter episodes
 - **Collapse Filters**: Click the "−" button to collapse the filter panel
 
-## Files
+## Repository Structure
 
-### Visualizations
-- `graph_visualization_v2.html` - **Main visualization** (uses Final_lenny_extracted_cleaned.jsonl)
-- `graph_visualization.html` - Legacy version (uses episodes_metadata.json)
-
-### Data Files
-- `Final_lenny_extracted_cleaned.jsonl` - **Main data file** with AI-extracted insights (295 episodes)
-- `episodes_metadata.json` - Legacy metadata file (298 episodes)
-- `*.txt` - Raw transcript files (298 files)
-
-### Scripts
-- `extract_metadata_ai.py` - AI-powered extraction using Together.ai
-- `extract_metadata.py` - Basic keyword-based extraction
-- `test_ai_extraction.py` - Test script for AI extraction
-
-### Documentation
-- `README.md` - This file
-- `EXTRACTION_INSTRUCTIONS.md` - Guide for AI extraction
-- `requirements.txt` - Python dependencies
+```
+.
+├── graph_visualization_v2.html    # Main visualization (V2)
+├── graph_visualization.html        # Legacy visualization (V1)
+├── index.html                      # Landing page
+├── Final_lenny_extracted_cleaned.jsonl  # Main data file (295 episodes)
+├── README.md                       # This file
+├── vercel.json                     # Vercel deployment config
+├── netlify.toml                    # Netlify deployment config
+├── deploy.sh                       # Deployment script
+│
+├── transcripts/                    # Raw transcript files (301 .txt files)
+│   ├── Melissa Perri + Denise Tilles.txt
+│   └── ...
+│
+├── scripts/                        # Python extraction scripts
+│   ├── extract_metadata_ai.py     # AI-powered extraction (Together.ai)
+│   ├── extract_metadata.py         # Basic keyword extraction
+│   ├── create_batch_jsonl.py      # Batch processing utilities
+│   └── ...
+│
+├── data/                           # Data files and intermediate outputs
+│   ├── episodes_metadata.json     # Legacy metadata (298 episodes)
+│   ├── batch_inference.jsonl       # Batch inference outputs
+│   ├── train_data.jsonl            # Training data
+│   └── ...
+│
+└── docs/                           # Documentation
+    ├── DEPLOYMENT.md               # Deployment guide
+    ├── AI_DEPLOYMENT_README.md     # AI tool deployment guide
+    ├── EXTRACTION_INSTRUCTIONS.md  # Extraction guide
+    ├── FINETUNING_README.md        # Fine-tuning guide
+    └── ...
+```
 
 ## Data Structure
 

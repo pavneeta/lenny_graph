@@ -921,7 +921,7 @@
             }
             
             // Transcript link
-            const transcriptFileName = encodeURIComponent(episode.episode_name + '.txt');
+            const transcriptFileName = 'transcripts/' + encodeURIComponent(episode.episode_name + '.txt');
             content += `<p style="margin-bottom: 15px;">
                 <a href="${transcriptFileName}" target="_blank" style="color: #4a9eff; text-decoration: none; border: 1px solid rgba(74, 158, 255, 0.3); padding: 6px 12px; border-radius: 5px; display: inline-block; transition: background 0.2s;">
                     📄 View Raw Transcript
