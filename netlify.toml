@@ -1,0 +1,8 @@
+[build]
+  publish = "."
+  
+[[redirects]]
+  from = "/*"
+  to = "/graph_visualization_v2.html"
+  status = 200
+
