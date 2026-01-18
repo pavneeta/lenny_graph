@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lenny's Podcast Episodes - 3D Relational Graph</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        #controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 100;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+        }
+
+        #controls h2 {
+            margin-bottom: 15px;
+            font-size: 18px;
+            color: #fff;
+        }
+
+        #controls p {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 10px;
+        }
+
+        #node-details {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 25px;
+            border-radius: 10px;
+            z-index: 100;
+            max-width: 450px;
+            max-height: 80vh;
+            overflow-y: auto;
+            display: none;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #node-details.visible {
+            display: block;
+        }
+
+        #node-details h3 {
+            color: #4a9eff;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        #node-details h4 {
+            color: #fff;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tag {
+            display: inline-block;
+            background: rgba(74, 158, 255, 0.2);
+            color: #4a9eff;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 11px;
+            margin: 5px 5px 5px 0;
+            border: 1px solid rgba(74, 158, 255, 0.3);
+        }
+
+        .takeaway {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            line-height: 1.6;
+            border-left: 3px solid #4a9eff;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        #stats {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 12px;
+            color: #aaa;
+            backdrop-filter: blur(10px);
+        }
+
+        .legend {
+            margin-top: 15px;
+            font-size: 11px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        #filters {
+            position: absolute;
+            top: 20px;
+            left: 450px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 100;
+            max-width: 300px;
+            max-height: 80vh;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        #filters.collapsed {
+            transform: translateX(-280px);
+            opacity: 0.3;
+        }
+
+        #filters.collapsed #filter-content {
+            display: none;
+        }
+
+        #filter-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(74, 158, 255, 0.2);
+            color: #4a9eff;
+            border: 1px solid rgba(74, 158, 255, 0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            z-index: 101;
+        }
+
+        #filter-toggle:hover {
+            background: rgba(74, 158, 255, 0.3);
+        }
+
+        #filter-content {
+            margin-top: 30px;
+        }
+
+        @media (max-width: 1200px) {
+            #filters {
+                left: 20px;
+                top: 450px;
+                max-width: 400px;
+            }
+        }
+
+        #filters h3 {
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #fff;
+        }
+
+        .filter-group {
+            margin-bottom: 15px;
+        }
+
+        .filter-checkbox {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .filter-checkbox input[type="checkbox"] {
+            margin-right: 8px;
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .filter-checkbox label {
+            cursor: pointer;
+            font-size: 12px;
+            color: #ccc;
+            flex: 1;
+        }
+
+        .filter-checkbox:hover label {
+            color: #fff;
+        }
+
+        .filter-actions {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .filter-btn {
+            background: rgba(74, 158, 255, 0.2);
+            color: #4a9eff;
+            border: 1px solid rgba(74, 158, 255, 0.3);
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 11px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        .filter-btn:hover {
+            background: rgba(74, 158, 255, 0.3);
+        }
+
+        .filter-count {
+            color: #888;
+            font-size: 10px;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="canvas-container"></div>
+        
+        <div id="controls">
+            <h2>🎙️ Lenny's Podcast Graph</h2>
+            <p><strong>Controls:</strong></p>
+            <p>• Click and drag to rotate</p>
+            <p>• Scroll to zoom in/out</p>
+            <p>• Click on a node to see details</p>
+            <p>• Right-click and drag to pan</p>
+            
+            <div class="legend">
+                <p style="margin-top: 15px; margin-bottom: 10px;"><strong>Node Colors:</strong></p>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ff6b6b;"></div>
+                    <span>Product Management</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #4ecdc4;"></div>
+                    <span>Leadership</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffe66d;"></div>
+                    <span>Growth</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #95e1d3;"></div>
+                    <span>Design</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #a8e6cf;"></div>
+                    <span>Other Topics</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="filters">
+            <button id="filter-toggle" onclick="toggleFilters()">−</button>
+            <h3>🔍 Filter by Tags</h3>
+            <div id="filter-content">
+                <div id="filter-list"></div>
+                <div class="filter-actions">
+                    <button class="filter-btn" onclick="selectAllFilters()">Select All</button>
+                    <button class="filter-btn" onclick="deselectAllFilters()">Deselect All</button>
+                    <button class="filter-btn" onclick="resetFilters()">Reset</button>
+                </div>
+                <p id="filter-info" style="margin-top: 10px; font-size: 11px; color: #888;">
+                    Showing: <span id="visible-count">0</span> / <span id="total-count">0</span> episodes
+                </p>
+            </div>
+        </div>
+
+        <div id="node-details">
+            <button class="close-btn" onclick="closeDetails()">×</button>
+            <h3 id="detail-title"></h3>
+            <div id="detail-content"></div>
+        </div>
+
+        <div id="stats">
+            <div id="stats-content">Loading...</div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Load OrbitControls with a more reliable method
+        (function() {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js';
+            script.onload = function() {
+                console.log('OrbitControls loaded');
+            };
+            script.onerror = function() {
+                console.warn('Failed to load OrbitControls from CDN');
+            };
+            document.head.appendChild(script);
+        })();
+    </script>
+    
+    <script>
+        let scene, camera, renderer, controls;
+        let nodes = [];
+        let edges = [];
+        let nodeMeshes = [];
+        let edgeLines = [];
+        let selectedNode = null;
+        let episodesData = [];
+        let allTags = [];
+        let selectedTags = new Set();
+        let originalNodes = [];
+        let originalEdges = [];
+
+        // Color mapping for different tag categories
+        const tagColors = {
+            'Product Management': 0xff6b6b,
+            'Leadership': 0x4ecdc4,
+            'Growth': 0xffe66d,
+            'Design': 0x95e1d3,
+            'Engineering': 0xa8e6cf,
+            'Strategy': 0xff9ff3,
+            'Marketing': 0x54a0ff,
+            'Data & Analytics': 0x5f27cd,
+            'Customer Research': 0x00d2d3,
+            'Startup': 0xff6348,
+            'AI/ML': 0xffa502,
+            'default': 0x888888
+        };
+
+        function getNodeColor(tags) {
+            // Get color based on primary tag
+            for (const tag of tags) {
+                if (tagColors[tag]) {
+                    return tagColors[tag];
+                }
+            }
+            return tagColors['default'];
+        }
+
+        function init() {
+            // Check if Three.js is loaded
+            if (typeof THREE === 'undefined') {
+                console.error('Three.js is not loaded!');
+                document.getElementById('stats-content').textContent = 'Error: Three.js failed to load';
+                return;
+            }
+            console.log('Three.js loaded, version:', THREE.REVISION);
+            
+            // Load episodes data
+            fetch('episodes_metadata.json')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // episodes_metadata.json already has the correct format, just ensure data is clean
+                    episodesData = data.episodes.map(episode => {
+                        return {
+                            episode_name: episode.episode_name || 'Unknown',
+                            guest_name: episode.guest_name || episode.episode_name || 'Unknown',
+                            key_takeaways: (episode.key_takeaways || []).slice(0, 5), // Limit to 5
+                            metadata_tags: episode.metadata_tags || [],
+                            file_path: episode.file_path || ''
+                        };
+                    });
+                    console.log(`Loaded ${episodesData.length} episodes`);
+                    
+                    // Setup scene first
+                    setupScene();
+                    
+                    // Collect tags and create UI
+                    collectAllTags();
+                    createFilterUI();
+                    
+                    // Create graph immediately
+                    createGraph();
+                    
+                    // Start animation loop
+                    animate();
+                    
+                    // Update stats
+                    updateStats();
+                    
+                    console.log('Graph initialization complete');
+                    console.log('Scene children:', scene.children.length);
+                    console.log('Node meshes:', nodeMeshes.length);
+                })
+                .catch(error => {
+                    console.error('Error loading data:', error);
+                    document.getElementById('stats-content').textContent = 'Error loading data: ' + error.message;
+                });
+        }
+
+        function setupScene() {
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a0a);
+
+            // Camera
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 10000);
+            // Position camera to see the graph better
+            camera.position.set(0, 0, 300);
+            camera.lookAt(0, 0, 0);
+            console.log('Camera positioned at:', camera.position);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            const canvasContainer = document.getElementById('canvas-container');
+            if (canvasContainer) {
+                canvasContainer.appendChild(renderer.domElement);
+                console.log('Canvas added to container');
+            } else {
+                console.error('Canvas container not found!');
+            }
+
+            // Controls - try OrbitControls, fallback to manual controls
+            try {
+                // Wait a bit for OrbitControls to load if it's async
+                if (typeof THREE !== 'undefined' && typeof THREE.OrbitControls !== 'undefined') {
+                    controls = new THREE.OrbitControls(camera, renderer.domElement);
+                    controls.enableDamping = true;
+                    controls.dampingFactor = 0.05;
+                    controls.minDistance = 50;
+                    controls.maxDistance = 500;
+                    controls.autoRotate = false;
+                    console.log('OrbitControls initialized');
+                } else {
+                    console.warn('OrbitControls not available, using manual controls');
+                    throw new Error('OrbitControls not available');
+                }
+            } catch (e) {
+                console.warn('Using fallback controls:', e.message);
+                // Manual controls fallback
+                let isDragging = false;
+                let previousMousePosition = { x: 0, y: 0 };
+                let mouseDown = false;
+                
+                renderer.domElement.addEventListener('mousedown', (e) => {
+                    mouseDown = true;
+                    isDragging = true;
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
+                });
+                
+                renderer.domElement.addEventListener('mousemove', (e) => {
+                    if (mouseDown && isDragging) {
+                        const deltaX = e.clientX - previousMousePosition.x;
+                        const deltaY = e.clientY - previousMousePosition.y;
+                        camera.position.x += deltaX * 0.1;
+                        camera.position.y -= deltaY * 0.1;
+                        previousMousePosition = { x: e.clientX, y: e.clientY };
+                    }
+                });
+                
+                renderer.domElement.addEventListener('mouseup', () => {
+                    mouseDown = false;
+                    isDragging = false;
+                });
+                
+                renderer.domElement.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    camera.position.z += e.deltaY * 0.1;
+                    camera.position.z = Math.max(50, Math.min(500, camera.position.z));
+                });
+                
+                controls = { update: () => {} }; // Dummy controls object
+            }
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(100, 100, 100);
+            scene.add(directionalLight);
+            
+            console.log('Scene setup complete');
+
+            // Handle window resize
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function collectAllTags() {
+            // Collect all unique tags from all episodes
+            const tagSet = new Set();
+            episodesData.forEach(episode => {
+                if (episode.metadata_tags) {
+                    episode.metadata_tags.forEach(tag => tagSet.add(tag));
+                }
+            });
+            allTags = Array.from(tagSet).sort();
+            // Initialize with all tags selected
+            allTags.forEach(tag => selectedTags.add(tag));
+        }
+
+        function createFilterUI() {
+            const filterList = document.getElementById('filter-list');
+            filterList.innerHTML = '';
+            
+            // Count episodes per tag
+            const tagCounts = {};
+            allTags.forEach(tag => {
+                tagCounts[tag] = episodesData.filter(ep => 
+                    ep.metadata_tags && ep.metadata_tags.includes(tag)
+                ).length;
+            });
+            
+            allTags.forEach(tag => {
+                const checkbox = document.createElement('div');
+                checkbox.className = 'filter-checkbox';
+                checkbox.innerHTML = `
+                    <input type="checkbox" id="filter-${tag}" checked onchange="toggleFilter('${tag}')">
+                    <label for="filter-${tag}">${tag}</label>
+                    <span class="filter-count">(${tagCounts[tag]})</span>
+                `;
+                filterList.appendChild(checkbox);
+            });
+            
+            document.getElementById('total-count').textContent = episodesData.length;
+        }
+
+        function toggleFilter(tag) {
+            const checkbox = document.getElementById(`filter-${tag}`);
+            if (checkbox.checked) {
+                selectedTags.add(tag);
+            } else {
+                selectedTags.delete(tag);
+            }
+            applyFilters();
+        }
+
+        function selectAllFilters() {
+            allTags.forEach(tag => {
+                selectedTags.add(tag);
+                const checkbox = document.getElementById(`filter-${tag}`);
+                if (checkbox) checkbox.checked = true;
+            });
+            applyFilters();
+        }
+
+        function deselectAllFilters() {
+            selectedTags.clear();
+            allTags.forEach(tag => {
+                const checkbox = document.getElementById(`filter-${tag}`);
+                if (checkbox) checkbox.checked = false;
+            });
+            applyFilters();
+        }
+
+        function resetFilters() {
+            selectAllFilters();
+        }
+
+        function createGraph() {
+            // Store original data
+            originalNodes = [...episodesData];
+            
+            // Create nodes from episodes (will be filtered by applyFilters)
+            applyFilters();
+        }
+
+        function applyFilters() {
+            // Filter episodes based on selected tags
+            const filteredEpisodes = episodesData.filter(episode => {
+                if (!episode.metadata_tags || episode.metadata_tags.length === 0) {
+                    return false; // Hide episodes with no tags
+                }
+                // Show episode if it has at least one selected tag
+                return episode.metadata_tags.some(tag => selectedTags.has(tag));
+            });
+            
+            // Update visible count
+            document.getElementById('visible-count').textContent = filteredEpisodes.length;
+            
+            // Recreate graph with filtered data
+            // Clear existing nodes and edges
+            nodeMeshes.forEach(mesh => scene.remove(mesh));
+            edgeLines.forEach(line => scene.remove(line));
+            nodeMeshes = [];
+            edgeLines = [];
+            nodes = [];
+            edges = [];
+            
+            // Create new nodes from filtered episodes
+            filteredEpisodes.forEach((episode, index) => {
+                const originalIndex = episodesData.indexOf(episode);
+                const angle = (index / filteredEpisodes.length) * Math.PI * 2;
+                const radius = 30 + Math.random() * 40;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+                const z = (Math.random() - 0.5) * 30;
+
+                nodes.push({
+                    id: index,
+                    episode: episode,
+                    originalIndex: originalIndex,
+                    position: new THREE.Vector3(x, y, z),
+                    velocity: new THREE.Vector3(0, 0, 0)
+                });
+            });
+            
+            // Create edges based on shared tags (only for visible nodes)
+            filteredEpisodes.forEach((episode1, i) => {
+                filteredEpisodes.forEach((episode2, j) => {
+                    if (i >= j) return;
+                    
+                    const sharedTags = episode1.metadata_tags.filter(tag => 
+                        episode2.metadata_tags.includes(tag) && selectedTags.has(tag)
+                    );
+                    
+                    if (sharedTags.length >= 2) {
+                        edges.push({
+                            source: i,
+                            target: j,
+                            strength: sharedTags.length
+                        });
+                    }
+                });
+            });
+            
+            // Apply force layout
+            applyForceLayout();
+            
+            // Create 3D objects
+            createNodes();
+            createEdges();
+            
+            // Update stats
+            updateStats();
+            
+            // Debug: Log node creation
+            console.log(`Created ${nodes.length} nodes and ${edges.length} edges`);
+            if (nodes.length > 0) {
+                console.log('First node position:', nodes[0].position);
+            }
+        }
+
+
+
+        function applyForceLayout() {
+            // Simple force-directed layout
+            const iterations = 100;
+            const k = Math.sqrt((30 * 30) / nodes.length); // Optimal distance
+            const repulsionStrength = 0.1;
+            const attractionStrength = 0.01;
+
+            for (let iter = 0; iter < iterations; iter++) {
+                // Repulsion between all nodes
+                nodes.forEach((node1, i) => {
+                    node1.velocity.multiplyScalar(0.9); // Damping
+                    nodes.forEach((node2, j) => {
+                        if (i === j) return;
+                        const diff = new THREE.Vector3().subVectors(node1.position, node2.position);
+                        const distance = diff.length() || 0.1;
+                        const force = repulsionStrength * k * k / distance;
+                        diff.normalize().multiplyScalar(force);
+                        node1.velocity.add(diff);
+                    });
+                });
+
+                // Attraction along edges
+                edges.forEach(edge => {
+                    const source = nodes[edge.source];
+                    const target = nodes[edge.target];
+                    const diff = new THREE.Vector3().subVectors(target.position, source.position);
+                    const distance = diff.length() || 0.1;
+                    const force = attractionStrength * distance * edge.strength / 2;
+                    diff.normalize().multiplyScalar(force);
+                    source.velocity.add(diff);
+                    target.velocity.sub(diff);
+                });
+
+                // Update positions
+                nodes.forEach(node => {
+                    node.position.add(node.velocity);
+                    // Keep nodes within bounds
+                    node.position.clamp(
+                        new THREE.Vector3(-100, -100, -50),
+                        new THREE.Vector3(100, 100, 50)
+                    );
+                });
+            }
+        }
+
+        function createNodes() {
+            nodes.forEach((node, index) => {
+                const color = getNodeColor(node.episode.metadata_tags);
+                // Make nodes larger so they're more visible
+                const geometry = new THREE.SphereGeometry(3.0, 16, 16);
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: color,
+                    emissive: color,
+                    emissiveIntensity: 0.4,
+                    shininess: 100
+                });
+                
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.copy(node.position);
+                mesh.userData = { nodeIndex: index };
+                
+                // Add glow effect
+                const glowGeometry = new THREE.SphereGeometry(3.5, 16, 16);
+                const glowMaterial = new THREE.MeshBasicMaterial({
+                    color: color,
+                    transparent: true,
+                    opacity: 0.4
+                });
+                const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+                mesh.add(glow);
+                
+                scene.add(mesh);
+                nodeMeshes.push(mesh);
+            });
+            
+            console.log(`Added ${nodeMeshes.length} node meshes to scene`);
+            console.log(`Scene now has ${scene.children.length} total children`);
+            
+            // Add a test cube to verify rendering works
+            if (nodeMeshes.length === 0) {
+                console.warn('No nodes created! Adding test cube...');
+                const testGeometry = new THREE.BoxGeometry(10, 10, 10);
+                const testMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+                const testCube = new THREE.Mesh(testGeometry, testMaterial);
+                testCube.position.set(0, 0, 0);
+                scene.add(testCube);
+                console.log('Test cube added at origin');
+            }
+
+            // Add click detection
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            renderer.domElement.addEventListener('click', (event) => {
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(nodeMeshes);
+
+                if (intersects.length > 0) {
+                    const clickedMesh = intersects[0].object;
+                    const nodeIndex = clickedMesh.userData.nodeIndex;
+                    showNodeDetails(nodeIndex);
+                }
+            });
+        }
+
+        function createEdges() {
+            edges.forEach(edge => {
+                const source = nodes[edge.source];
+                const target = nodes[edge.target];
+                
+                const geometry = new THREE.BufferGeometry().setFromPoints([
+                    source.position,
+                    target.position
+                ]);
+                
+                const color = getNodeColor(source.episode.metadata_tags);
+                const material = new THREE.LineBasicMaterial({
+                    color: color,
+                    opacity: 0.3,
+                    transparent: true
+                });
+                
+                const line = new THREE.Line(geometry, material);
+                scene.add(line);
+                edgeLines.push(line);
+            });
+        }
+
+        function showNodeDetails(nodeIndex) {
+            const node = nodes[nodeIndex];
+            const episode = node.episode;
+            
+            document.getElementById('detail-title').textContent = episode.episode_name;
+            
+            let content = '';
+            
+            // Guest name
+            if (episode.guest_name) {
+                content += `<p style="color: #aaa; margin-bottom: 15px;">Guest: ${episode.guest_name}</p>`;
+            }
+            
+            // Tags
+            content += '<h4>Metadata Tags</h4>';
+            content += '<div>';
+            episode.metadata_tags.forEach(tag => {
+                content += `<span class="tag">${tag}</span>`;
+            });
+            content += '</div>';
+            
+            // Key Takeaways
+            content += '<h4>Key Takeaways</h4>';
+            episode.key_takeaways.forEach(takeaway => {
+                content += `<div class="takeaway">${takeaway}</div>`;
+            });
+            
+            document.getElementById('detail-content').innerHTML = content;
+            document.getElementById('node-details').classList.add('visible');
+            
+            // Highlight selected node
+            if (selectedNode) {
+                selectedNode.scale.set(1, 1, 1);
+            }
+            selectedNode = nodeMeshes[nodeIndex];
+            selectedNode.scale.set(1.5, 1.5, 1.5);
+        }
+
+        function closeDetails() {
+            document.getElementById('node-details').classList.remove('visible');
+            if (selectedNode) {
+                selectedNode.scale.set(1, 1, 1);
+                selectedNode = null;
+            }
+        }
+
+        function updateStats() {
+            const totalNodes = nodes.length;
+            const totalEdges = edges.length;
+            const avgConnections = (totalEdges * 2 / totalNodes).toFixed(1);
+            
+            document.getElementById('stats-content').innerHTML = `
+                <strong>Graph Statistics</strong><br>
+                Episodes: ${totalNodes}<br>
+                Connections: ${totalEdges}<br>
+                Avg Connections: ${avgConnections}
+            `;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // Animate nodes (subtle floating)
+            if (nodeMeshes && nodeMeshes.length > 0) {
+                nodeMeshes.forEach((mesh, i) => {
+                    if (nodes[i] && mesh) {
+                        const node = nodes[i];
+                        const time = Date.now() * 0.001;
+                        // Update mesh position from node position
+                        mesh.position.x = node.position.x;
+                        mesh.position.y = node.position.y + Math.sin(time + i) * 0.5;
+                        mesh.position.z = node.position.z;
+                        mesh.rotation.y += 0.01;
+                    }
+                });
+            }
+            
+            // Update edges
+            if (edgeLines && edgeLines.length > 0) {
+                edgeLines.forEach((line, i) => {
+                    if (edges[i]) {
+                        const edge = edges[i];
+                        const source = nodes[edge.source];
+                        const target = nodes[edge.target];
+                        if (source && target) {
+                            const geometry = new THREE.BufferGeometry().setFromPoints([
+                                source.position,
+                                target.position
+                            ]);
+                            line.geometry.dispose();
+                            line.geometry = geometry;
+                        }
+                    }
+                });
+            }
+            
+            if (controls && controls.update) {
+                controls.update();
+            }
+            
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
+            } else {
+                console.error('Missing renderer, scene, or camera:', {
+                    renderer: !!renderer,
+                    scene: !!scene,
+                    camera: !!camera
+                });
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function toggleFilters() {
+            const filters = document.getElementById('filters');
+            const toggle = document.getElementById('filter-toggle');
+            
+            if (filters.classList.contains('collapsed')) {
+                filters.classList.remove('collapsed');
+                toggle.textContent = '−';
+                toggle.title = 'Collapse filters';
+            } else {
+                filters.classList.add('collapsed');
+                toggle.textContent = '+';
+                toggle.title = 'Expand filters';
+            }
+        }
+
+        // Initialize when page loads
+        init();
+    </script>
+</body>
+</html>
+

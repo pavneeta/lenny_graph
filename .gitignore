@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary/Intermediate files
+*.log
+job-*.jsonl
+transcripts_batch.json
+transcripts_batch.jsonl
+val_data.jsonl
+train_data.jsonl
+episodes_extracted.json
+episodes_json/
+
+# Test files (optional - uncomment if you want to exclude)
+# test_ai_extraction.py
+
+# Large data files (optional - uncomment if you want to exclude)
+# batch_inference.jsonl
+# together_batch_input*.jsonl
+
