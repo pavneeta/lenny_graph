@@ -112,10 +112,12 @@ For detailed instructions on each step, see:
 │   └── ...
 │
 ├── scripts/                        # Python extraction scripts
+│   ├── prepare_together_batch.py  # Convert transcripts to batch format
+│   ├── convert_to_json.py         # Convert .txt files to JSONL
 │   ├── extract_metadata_ai.py     # AI-powered extraction (Together.ai)
-│   ├── extract_metadata.py         # Basic keyword extraction
-│   ├── create_batch_jsonl.py      # Batch processing utilities
-│   └── ...
+│   ├── test_ai_extraction.py      # Test script for AI extraction
+│   ├── prepare_finetuning_data.py # Prepare fine-tuning datasets
+│   └── requirements.txt           # Python dependencies
 │
 ├── data/                           # Data files and intermediate outputs
 │   ├── episodes_metadata.json     # Legacy metadata (298 episodes)
@@ -175,10 +177,10 @@ To extract metadata using AI:
 
 2. Run the extraction:
    ```bash
-   python3 extract_metadata_ai.py
+   python3 scripts/extract_metadata_ai.py
    ```
 
-See `EXTRACTION_INSTRUCTIONS.md` for detailed instructions.
+See `docs/EXTRACTION_INSTRUCTIONS.md` for detailed instructions.
 
 ## License
 
