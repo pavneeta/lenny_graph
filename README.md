@@ -44,6 +44,56 @@ An interactive 3D visualization tool for exploring Lenny's Podcast episodes and 
 - **Filter**: Use the dimension dropdowns to filter episodes
 - **Collapse Filters**: Click the "−" button to collapse the filter panel
 
+## Workflow
+
+The data processing pipeline follows these steps:
+
+```mermaid
+flowchart LR
+    A[Raw Transcripts<br/>.txt files] --> B[Convert to Batch Format<br/>prepare_together_batch.py]
+    B --> C[Batch Inference<br/>Together.ai API<br/>meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo]
+    C --> D[Extract Insights<br/>Key Takeaways & Metadata]
+    D --> E[Clean & Structure<br/>Final_lenny_extracted_cleaned.jsonl]
+    E --> F[3D Graph Visualization<br/>graph_visualization_v2.html]
+    
+    style A fill:#4a9eff,stroke:#333,stroke-width:2px,color:#fff
+    style B fill:#6c757d,stroke:#333,stroke-width:2px,color:#fff
+    style C fill:#28a745,stroke:#333,stroke-width:2px,color:#fff
+    style D fill:#ffc107,stroke:#333,stroke-width:2px,color:#000
+    style E fill:#17a2b8,stroke:#333,stroke-width:2px,color:#fff
+    style F fill:#dc3545,stroke:#333,stroke-width:2px,color:#fff
+```
+
+### Step-by-Step Process
+
+1. **Convert Data to Batch Format**
+   - Script: `scripts/prepare_together_batch.py`
+   - Input: Transcript `.txt` files
+   - Output: `together_batch_input.jsonl` (Together.ai batch-compatible format)
+   - Format: Each line contains a JSON object with `custom_id`, `body.model`, and `body.messages`
+
+2. **Submit Batch Inference**
+   - Platform: [Together.ai Batch API](https://docs.together.ai/docs/batch-inference)
+   - Model: `meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo` (50% discount for batch processing)
+   - Process: Upload batch file → Create batch job → Wait for completion (typically 24-72 hours)
+   - Output: Extracted insights including:
+     - Key takeaways with categories
+     - Metadata tags (topics, functions, company_stage, seniority_level, primary_audience)
+
+3. **Visualize in HTML Graph**
+   - File: `graph_visualization_v2.html`
+   - Technology: Three.js for 3D rendering
+   - Features:
+     - Interactive 3D force-directed graph
+     - Nodes represent episodes, edges represent shared dimensions
+     - Dimension-based filtering (Category, Functions, Primary Audience)
+     - Click nodes to view details and access transcripts
+
+For detailed instructions on each step, see:
+- **Batch Processing**: `docs/BATCH_INFERENCE_GUIDE.md`
+- **Extraction**: `docs/EXTRACTION_INSTRUCTIONS.md`
+- **Deployment**: `docs/DEPLOYMENT.md`
+
 ## Repository Structure
 
 ```
