@@ -37,3 +37,7 @@ episodes_json/
 # batch_inference.jsonl
 # together_batch_input*.jsonl
 
+nextjs-app/node_modules/
+nextjs-app/.next/
+nextjs-app/out/
+nextjs-app/.vercel/
