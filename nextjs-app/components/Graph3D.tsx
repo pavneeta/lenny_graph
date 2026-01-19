@@ -281,13 +281,23 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
       
       nodeMeshesRef.current.forEach(mesh => {
         mesh.geometry.dispose();
-        (mesh.material as THREE.Material).dispose();
+        const material = mesh.material;
+        if (Array.isArray(material)) {
+          material.forEach(mat => mat.dispose());
+        } else {
+          material.dispose();
+        }
         scene.remove(mesh);
       });
       
       edgeLinesRef.current.forEach(line => {
         line.geometry.dispose();
-        line.material.dispose();
+        const material = line.material;
+        if (Array.isArray(material)) {
+          material.forEach(mat => mat.dispose());
+        } else {
+          material.dispose();
+        }
         scene.remove(line);
       });
       
