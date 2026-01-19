@@ -101,7 +101,7 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="w-screen h-screen bg-[#0f0f0f] flex items-center justify-center text-[#f5f5f5]">
+      <div className="w-screen h-screen bg-white flex items-center justify-center text-[#ff6b35]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
           <p>Loading episodes...</p>
@@ -111,7 +111,7 @@ export default function Home() {
   }
 
   return (
-    <main className="w-screen h-screen bg-[#0f0f0f] relative overflow-hidden">
+    <main className="w-screen h-screen bg-white relative overflow-hidden">
       <Graph3D
         nodes={nodes}
         edges={edges}
@@ -138,10 +138,10 @@ export default function Home() {
         }}
       />
 
-      <div className="absolute bottom-5 left-5 bg-[#1a1a1a]/90 backdrop-blur-md p-3 rounded text-xs text-[#a0a0a0] border border-[#2a2a2a]">
-        <div>Episodes: {episodes.length}</div>
-        <div>Visible: {nodes.length}</div>
-        <div>Connections: {edges.length}</div>
+      <div className="absolute bottom-5 left-5 bg-white/95 backdrop-blur-md p-3 rounded text-xs text-[#ff6b35] border border-[#ff6b35]/30 shadow-lg">
+        <div className="font-semibold">Episodes: {episodes.length}</div>
+        <div className="font-semibold">Visible: {nodes.length}</div>
+        <div className="font-semibold">Connections: {edges.length}</div>
       </div>
     </main>
   );

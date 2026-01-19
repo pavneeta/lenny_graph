@@ -35,15 +35,15 @@ export default function FilterPanel({
   });
 
   return (
-    <div className="absolute top-5 left-5 bg-[#1a1a1a]/90 backdrop-blur-md p-5 rounded-lg z-10 max-w-sm border border-[#2a2a2a]">
-      <h2 className="text-lg font-semibold mb-4 text-[#f5f5f5]">Filter by Dimensions</h2>
+    <div className="absolute top-5 left-5 bg-white/95 backdrop-blur-md p-5 rounded-lg z-10 max-w-sm border border-[#ff6b35]/30 shadow-lg">
+      <h2 className="text-lg font-semibold mb-4 text-[#ff6b35]">Filter by Dimensions</h2>
       
       <div className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-[#d1d1d1] mb-2">Category:</label>
+          <label className="block text-sm font-medium text-[#ff6b35] mb-2">Category:</label>
           <select
             multiple
-            className="w-full bg-[#1f1f1f] text-[#f5f5f5] rounded p-2 text-sm max-h-32 overflow-y-auto border border-[#2a2a2a]"
+            className="w-full bg-white text-[#1a1a1a] rounded p-2 text-sm max-h-32 overflow-y-auto border border-[#ff6b35]/40"
             size={Math.min(5, allCategories.size)}
             onChange={(e) => {
               const options = Array.from(e.target.selectedOptions, option => option.value);
@@ -54,7 +54,7 @@ export default function FilterPanel({
             value={Array.from(selectedCategories)}
           >
               {Array.from(allCategories).sort().map(cat => (
-                <option key={cat} value={cat} className="bg-[#1f1f1f]">
+                <option key={cat} value={cat} className="bg-white text-[#1a1a1a]">
                   {cat}
                 </option>
               ))}
@@ -62,10 +62,10 @@ export default function FilterPanel({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[#d1d1d1] mb-2">Functions:</label>
+          <label className="block text-sm font-medium text-[#ff6b35] mb-2">Functions:</label>
           <select
             multiple
-            className="w-full bg-[#1f1f1f] text-[#f5f5f5] rounded p-2 text-sm max-h-32 overflow-y-auto border border-[#2a2a2a]"
+            className="w-full bg-white text-[#1a1a1a] rounded p-2 text-sm max-h-32 overflow-y-auto border border-[#ff6b35]/40"
             size={Math.min(5, allFunctions.size)}
             onChange={(e) => {
               const options = Array.from(e.target.selectedOptions, option => option.value);
@@ -76,7 +76,7 @@ export default function FilterPanel({
             value={Array.from(selectedFunctions)}
           >
               {Array.from(allFunctions).sort().map(func => (
-                <option key={func} value={func} className="bg-[#1f1f1f]">
+                <option key={func} value={func} className="bg-white text-[#1a1a1a]">
                   {func}
                 </option>
               ))}
@@ -84,10 +84,10 @@ export default function FilterPanel({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-[#d1d1d1] mb-2">Primary Audience:</label>
+          <label className="block text-sm font-medium text-[#ff6b35] mb-2">Primary Audience:</label>
           <select
             multiple
-            className="w-full bg-[#1f1f1f] text-[#f5f5f5] rounded p-2 text-sm max-h-32 overflow-y-auto border border-[#2a2a2a]"
+            className="w-full bg-white text-[#1a1a1a] rounded p-2 text-sm max-h-32 overflow-y-auto border border-[#ff6b35]/40"
             size={Math.min(5, allAudiences.size)}
             onChange={(e) => {
               const options = Array.from(e.target.selectedOptions, option => option.value);
@@ -98,7 +98,7 @@ export default function FilterPanel({
             value={Array.from(selectedAudiences)}
           >
               {Array.from(allAudiences).sort().map(aud => (
-                <option key={aud} value={aud} className="bg-[#1f1f1f]">
+                <option key={aud} value={aud} className="bg-white text-[#1a1a1a]">
                   {aud}
                 </option>
               ))}
@@ -107,7 +107,7 @@ export default function FilterPanel({
 
         <button
           onClick={onReset}
-          className="w-full bg-[#0066ff] hover:bg-[#0052cc] text-white py-2 px-4 rounded text-sm font-medium transition border border-[#0066ff]/30"
+          className="w-full bg-[#ff6b35] hover:bg-[#e55a2b] text-white py-2 px-4 rounded text-sm font-medium transition border border-[#ff6b35]/30 shadow-sm"
         >
           Reset All
         </button>
