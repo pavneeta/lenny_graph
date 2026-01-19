@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { Node, Edge } from '@/types';
 import { getCategoryColor } from '@/lib/colors';
