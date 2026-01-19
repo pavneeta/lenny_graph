@@ -116,6 +116,7 @@ export default function Home() {
         nodes={nodes}
         edges={edges}
         onNodeClick={handleNodeClick}
+        paused={selectedNode !== null}
       />
       
       <FilterPanel
@@ -131,7 +132,10 @@ export default function Home() {
 
       <NodeDetails
         episode={selectedNode}
-        onClose={() => setSelectedNode(null)}
+        onClose={() => {
+          setSelectedNode(null);
+          // Resume animation when details panel closes
+        }}
       />
 
       <div className="absolute bottom-5 left-5 bg-black/80 backdrop-blur-md p-3 rounded text-xs text-gray-400">

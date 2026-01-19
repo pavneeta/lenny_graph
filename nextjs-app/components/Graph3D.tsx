@@ -9,9 +9,10 @@ interface Graph3DProps {
   nodes: Node[];
   edges: Edge[];
   onNodeClick?: (nodeIndex: number) => void;
+  paused?: boolean;
 }
 
-export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
+export default function Graph3D({ nodes, edges, onNodeClick, paused = false }: Graph3DProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const sceneRef = useRef<THREE.Scene | null>(null);
   const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -361,13 +362,25 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
     };
   }, []);
 
-  // Update graph when nodes/edges change
+  // Update graph when nodes/edges change - preserve positions
   useEffect(() => {
     if (!sceneRef.current) return;
     
     const scene = sceneRef.current;
     const currentNodes = nodesRef.current;
     const currentEdges = edgesRef.current;
+
+    // Store existing positions before clearing
+    const existingPositions = new Map<string, [number, number, number]>();
+    nodeMeshesRef.current.forEach((mesh, idx) => {
+      if (mesh.userData.episode) {
+        existingPositions.set(mesh.userData.episode.episode_name, [
+          mesh.position.x,
+          mesh.position.y,
+          mesh.position.z
+        ]);
+      }
+    });
 
     // Clear existing
     nodeMeshesRef.current.forEach(mesh => {
@@ -393,8 +406,20 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
     nodeMeshesRef.current = [];
     edgeLinesRef.current = [];
 
-    // Recreate nodes with category colors
+    // Recreate nodes with category colors - preserve positions if they exist
     currentNodes.forEach((node, index) => {
+      // Use existing position if available, otherwise use node's position
+      const existingPos = existingPositions.get(node.episode.episode_name);
+      if (existingPos) {
+        node.position[0] = existingPos[0];
+        node.position[1] = existingPos[1];
+        node.position[2] = existingPos[2];
+        // Reset velocity to prevent sudden movement
+        node.velocity[0] = 0;
+        node.velocity[1] = 0;
+        node.velocity[2] = 0;
+      }
+      
       const nodeColor = getCategoryColor(node.episode.categories);
       
       const geometry = new THREE.SphereGeometry(3.0, 16, 16);
@@ -444,6 +469,18 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
       edgeLinesRef.current.push(line);
     });
   }, [nodes, edges]);
+  
+  // Update paused state
+  useEffect(() => {
+    // When paused, stop all node velocities
+    if (paused) {
+      nodesRef.current.forEach(node => {
+        node.velocity[0] = 0;
+        node.velocity[1] = 0;
+        node.velocity[2] = 0;
+      });
+    }
+  }, [paused]);
 
   return <div ref={containerRef} className="w-full h-full" />;
 }
