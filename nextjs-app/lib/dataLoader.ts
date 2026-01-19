@@ -10,7 +10,7 @@ export async function loadEpisodesData(): Promise<Episode[]> {
     const text = await response.text();
     const lines = text.trim().split('\n');
     
-    const episodes: Episode[] = lines
+    const episodes = lines
       .map((line, index) => {
         try {
           const episode = JSON.parse(line);
@@ -66,7 +66,7 @@ export async function loadEpisodesData(): Promise<Episode[]> {
           return null;
         }
       })
-      .filter((ep): ep is Episode => ep !== null);
+      .filter((ep): ep is Episode => ep !== null) as Episode[];
     
     return episodes;
   } catch (error) {
