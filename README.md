@@ -9,13 +9,14 @@ An interactive 3D visualization tool for exploring Lenny's Podcast episodes and 
   - Force-directed layout showing relationships between episodes
   - Zoom, rotate, and pan controls
   - Click nodes to see episode details
-- **Dimension-Based Filtering**:
-  - **Category**: Filter by insight categories (product, growth, leadership, etc.)
-  - **Functions**: Filter by functional areas (product, engineering, design, etc.)
+- **Topic Index-Based Filtering**:
+  - **Topics (Index)**: Filter by standardized topics based on Lenny's Podcast index (product_management, leadership, growth_strategy, etc.)
   - **Primary Audience**: Filter by target audience (founders, PMs, engineers, etc.)
+- **Semantic Search**: Search across episode names, guests, takeaways, and topics
+- **Connected Nodes Filter**: Click any node to see only connected episodes (sharing topics)
 - **Episode Details**: 
   - View key takeaways
-  - See categories, functions, and primary audience
+  - See topics and primary audience
   - Direct link to raw transcript
 
 ## Quick Start
@@ -28,7 +29,8 @@ An interactive 3D visualization tool for exploring Lenny's Podcast episodes and 
    ```
 
 2. Open in browser:
-   - **V2 (Recommended)**: `http://localhost:8000/graph_visualization_v2.html`
+   - **V3 (Latest)**: `http://localhost:8000/graph_visualization_v3.html`
+   - **V2 (Previous)**: `http://localhost:8000/graph_visualization_v2.html`
    - **V1 (Legacy)**: `http://localhost:8000/graph_visualization.html`
 
 ### Interact with the Graph
@@ -41,7 +43,9 @@ An interactive 3D visualization tool for exploring Lenny's Podcast episodes and 
   - Categories, Functions, and Primary Audience
   - Key takeaways
   - Link to raw transcript
-- **Filter**: Use the dimension dropdowns to filter episodes
+- **Filter**: Use the topic index and primary audience dropdowns to filter episodes
+- **Search**: Use the semantic search box to find episodes by keywords
+- **Connected Nodes**: Click a node, then click "Show Connected Nodes Only" to filter to related episodes
 - **Collapse Filters**: Click the "−" button to collapse the filter panel
 
 ## Workflow
@@ -54,7 +58,7 @@ flowchart LR
     B --> C[Batch Inference<br/>Together.ai API<br/>meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo]
     C --> D[Extract Insights<br/>Key Takeaways & Metadata]
     D --> E[Clean & Structure<br/>Final_lenny_extracted_cleaned.jsonl]
-    E --> F[3D Graph Visualization<br/>graph_visualization_v2.html]
+    E --> F[3D Graph Visualization<br/>graph_visualization_v3.html]
     
     style A fill:#4a9eff,stroke:#333,stroke-width:2px,color:#fff
     style B fill:#6c757d,stroke:#333,stroke-width:2px,color:#fff
@@ -81,12 +85,14 @@ flowchart LR
      - Metadata tags (topics, functions, company_stage, seniority_level, primary_audience)
 
 3. **Visualize in HTML Graph**
-   - File: `graph_visualization_v2.html`
+   - File: `graph_visualization_v3.html`
    - Technology: Three.js for 3D rendering
    - Features:
      - Interactive 3D force-directed graph
-     - Nodes represent episodes, edges represent shared dimensions
-     - Dimension-based filtering (Category, Functions, Primary Audience)
+     - Nodes represent episodes, edges represent shared topics
+     - Topic index-based filtering (Topics, Primary Audience)
+     - Semantic search across episodes
+     - Connected nodes filtering on click
      - Click nodes to view details and access transcripts
 
 For detailed instructions on each step, see:
@@ -98,10 +104,13 @@ For detailed instructions on each step, see:
 
 ```
 .
-├── graph_visualization_v2.html    # Main visualization (V2)
+├── graph_visualization_v3.html    # Main visualization (V3 - Latest)
+├── graph_visualization_v2.html    # Previous visualization (V2)
 ├── graph_visualization.html        # Legacy visualization (V1)
 ├── index.html                      # Landing page
-├── Final_lenny_extracted_cleaned.jsonl  # Main data file (295 episodes)
+├── Final_lenny_extracted_indexed.jsonl  # Main data file with topic index (295 episodes)
+├── Final_lenny_extracted_cleaned.jsonl  # Previous data file (295 episodes)
+├── episodes_index.json            # Topic index based on Lenny's Podcast structure
 ├── README.md                       # This file
 ├── vercel.json                     # Vercel deployment config
 ├── netlify.toml                    # Netlify deployment config
@@ -135,14 +144,15 @@ For detailed instructions on each step, see:
 
 ## Data Structure
 
-### V2 Data Format (Final_lenny_extracted_cleaned.jsonl)
+### V3 Data Format (Final_lenny_extracted_indexed.jsonl)
 
 Each line is a JSON object with:
 - `host_name`: Episode guest/host name
 - `key_takeaways`: Array of insight objects with:
   - `insight`: The key takeaway text
-  - `category`: Category (product, growth, leadership, etc.)
+  - `category`: Normalized topic category (product_management, growth_strategy, leadership, etc.)
   - `evidence`: Supporting quote
+- `topics`: Array of normalized topics matching the index
 - `metadata_tags`: Object with:
   - `topics`: Array of topic tags
   - `functions`: Array of function tags
@@ -155,9 +165,10 @@ Each line is a JSON object with:
 
 ## Graph Structure
 
-- **Nodes**: Each episode is represented as a blue sphere
-- **Edges**: Episodes are connected if they share at least 2 common dimensions (categories, functions, or audiences)
-- **Filtering**: Episodes are filtered using AND logic across selected dimensions
+- **Nodes**: Each episode is represented as a blue sphere (yellow when in connected nodes mode)
+- **Edges**: Episodes are connected if they share at least 1 common topic
+- **Filtering**: Episodes are filtered using AND logic across selected topics and primary audience
+- **Connected Nodes**: When clicking a node, you can filter to show only episodes that share topics with the selected node
 
 ## Technical Details
 
