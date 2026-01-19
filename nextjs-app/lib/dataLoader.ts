@@ -66,7 +66,7 @@ export async function loadEpisodesData(): Promise<Episode[]> {
           return null;
         }
       })
-      .filter((ep): ep is Episode => ep !== null) as Episode[];
+      .filter((ep) => ep !== null) as Episode[];
     
     return episodes;
   } catch (error) {
