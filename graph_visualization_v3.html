@@ -544,13 +544,9 @@
                     controls.addEventListener('end', () => {
                         // Check if camera moved (it was a drag) or stayed (it was a click)
                         const cameraMoved = camera.position.distanceTo(cameraPositionBefore) > 0.01;
-                        if (!cameraMoved) {
-                            // It was a click, handle it
-                            setTimeout(() => {
-                                if (window.handleNodeClick) {
-                                    window.handleNodeClick();
-                                }
-                            }, 10);
+                        if (!cameraMoved && !isOrbitDragging) {
+                            // It was a click, but we'll handle it via mouseup event instead
+                            console.log('OrbitControls end - camera did not move (potential click)');
                         }
                         isOrbitDragging = false;
                     });
@@ -604,12 +600,14 @@
             raycaster = new THREE.Raycaster();
             mouse = new THREE.Vector2();
             
+            // Track mouse position and drag state
+            let mouseDownPos = null;
+            let mouseDownTime = 0;
+            let hasDragged = false;
+            
             // Function to handle node clicks
             function handleNodeClick(event) {
-                if (!event) {
-                    // Called from OrbitControls end event
-                    event = { clientX: window.innerWidth / 2, clientY: window.innerHeight / 2 };
-                }
+                if (!event) return;
                 
                 // Calculate mouse position in normalized device coordinates
                 const rect = renderer.domElement.getBoundingClientRect();
@@ -623,7 +621,8 @@
                 console.log('Raycast check:', {
                     mousePos: { x: mouse.x, y: mouse.y },
                     nodeMeshesCount: nodeMeshes.length,
-                    intersectsCount: intersects.length
+                    intersectsCount: intersects.length,
+                    nodesCount: nodes.length
                 });
 
                 if (intersects.length > 0) {
@@ -631,33 +630,60 @@
                     const nodeIndex = clickedMesh.userData.nodeIndex;
                     console.log('Node clicked:', nodeIndex, clickedMesh, nodes[nodeIndex]);
                     if (nodeIndex !== undefined && nodes[nodeIndex]) {
+                        event.preventDefault();
+                        event.stopPropagation();
                         showNodeDetails(nodeIndex);
+                        return true;
                     }
                 }
+                return false;
             }
             
-            // Store handleNodeClick globally so OrbitControls can call it
-            window.handleNodeClick = handleNodeClick;
-            
-            // Also add direct click handler as fallback
-            let lastMouseDown = { time: 0, x: 0, y: 0 };
-            renderer.domElement.addEventListener('mousedown', (event) => {
-                lastMouseDown = {
-                    time: Date.now(),
-                    x: event.clientX,
-                    y: event.clientY
-                };
+            // Use dblclick as primary method (OrbitControls doesn't interfere)
+            renderer.domElement.addEventListener('dblclick', (event) => {
+                console.log('Double click detected');
+                handleNodeClick(event);
             });
             
-            renderer.domElement.addEventListener('click', (event) => {
-                // Only handle if it's a quick click (not a drag)
-                const timeSinceMouseDown = Date.now() - lastMouseDown.time;
-                const dx = Math.abs(event.clientX - lastMouseDown.x);
-                const dy = Math.abs(event.clientY - lastMouseDown.y);
-                
-                if (timeSinceMouseDown < 300 && dx < 5 && dy < 5) {
-                    console.log('Click detected, checking for node intersection');
-                    handleNodeClick(event);
+            // Also try mousedown/mouseup to catch single clicks
+            renderer.domElement.addEventListener('mousedown', (event) => {
+                mouseDownPos = { x: event.clientX, y: event.clientY };
+                mouseDownTime = Date.now();
+                hasDragged = false;
+            });
+            
+            renderer.domElement.addEventListener('mousemove', (event) => {
+                if (mouseDownPos) {
+                    const dx = Math.abs(event.clientX - mouseDownPos.x);
+                    const dy = Math.abs(event.clientY - mouseDownPos.y);
+                    if (dx > 3 || dy > 3) {
+                        hasDragged = true;
+                    }
+                }
+            });
+            
+            renderer.domElement.addEventListener('mouseup', (event) => {
+                if (mouseDownPos && !hasDragged) {
+                    const clickDuration = Date.now() - mouseDownTime;
+                    if (clickDuration < 250) {
+                        console.log('Single click detected (no drag)');
+                        // Small delay to let OrbitControls finish
+                        setTimeout(() => {
+                            handleNodeClick(event);
+                        }, 50);
+                    }
+                }
+                mouseDownPos = null;
+                hasDragged = false;
+            });
+            
+            // Also try pointer events
+            renderer.domElement.addEventListener('pointerup', (event) => {
+                if (event.pointerType === 'mouse' && !hasDragged) {
+                    console.log('Pointer up detected');
+                    setTimeout(() => {
+                        handleNodeClick(event);
+                    }, 50);
                 }
             });
             
