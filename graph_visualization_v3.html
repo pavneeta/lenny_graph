@@ -410,6 +410,10 @@
         let searchQuery = '';
         let connectedNodesMode = false;
         let connectedNodeIds = new Set();
+        let raycaster = null;
+        let mouse = null;
+        let isDragging = false;
+        let mouseDownPos = null;
 
         // Color mapping for categories/topics
         const categoryColors = {
@@ -573,24 +577,57 @@
             directionalLight.position.set(100, 100, 100);
             scene.add(directionalLight);
             
-            // Setup click handler once (not inside createNodes)
-            const raycaster = new THREE.Raycaster();
-            const mouse = new THREE.Vector2();
-
-            renderer.domElement.addEventListener('click', (event) => {
-                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-                raycaster.setFromCamera(mouse, camera);
-                const intersects = raycaster.intersectObjects(nodeMeshes);
-
-                if (intersects.length > 0) {
-                    const clickedMesh = intersects[0].object;
-                    const nodeIndex = clickedMesh.userData.nodeIndex;
-                    if (nodeIndex !== undefined && nodes[nodeIndex]) {
-                        showNodeDetails(nodeIndex);
+            // Initialize raycaster and mouse for click detection
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+            
+            // Setup click handler - use mousedown/mouseup to distinguish from drag
+            let mouseDownTime = 0;
+            let mouseDownPos = null;
+            
+            renderer.domElement.addEventListener('mousedown', (event) => {
+                mouseDownTime = Date.now();
+                mouseDownPos = { x: event.clientX, y: event.clientY };
+                isDragging = false;
+            });
+            
+            renderer.domElement.addEventListener('mousemove', (event) => {
+                if (mouseDownPos) {
+                    const dx = Math.abs(event.clientX - mouseDownPos.x);
+                    const dy = Math.abs(event.clientY - mouseDownPos.y);
+                    if (dx > 5 || dy > 5) {
+                        isDragging = true;
                     }
                 }
+            });
+            
+            renderer.domElement.addEventListener('mouseup', (event) => {
+                const clickDuration = Date.now() - mouseDownTime;
+                const isClick = !isDragging && clickDuration < 200;
+                
+                if (isClick && mouseDownPos) {
+                    // Calculate mouse position in normalized device coordinates
+                    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+                    // Update raycaster with current camera and mouse position
+                    raycaster.setFromCamera(mouse, camera);
+                    const intersects = raycaster.intersectObjects(nodeMeshes);
+
+                    if (intersects.length > 0) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        const clickedMesh = intersects[0].object;
+                        const nodeIndex = clickedMesh.userData.nodeIndex;
+                        if (nodeIndex !== undefined && nodes[nodeIndex]) {
+                            console.log('Node clicked:', nodeIndex, nodes[nodeIndex].episode.episode_name);
+                            showNodeDetails(nodeIndex);
+                        }
+                    }
+                }
+                
+                mouseDownPos = null;
+                isDragging = false;
             });
             
             window.addEventListener('resize', onWindowResize);
