@@ -815,23 +815,6 @@
                 scene.add(mesh);
                 nodeMeshes.push(mesh);
             });
-
-            const raycaster = new THREE.Raycaster();
-            const mouse = new THREE.Vector2();
-
-            renderer.domElement.addEventListener('click', (event) => {
-                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-                raycaster.setFromCamera(mouse, camera);
-                const intersects = raycaster.intersectObjects(nodeMeshes);
-
-                if (intersects.length > 0) {
-                    const clickedMesh = intersects[0].object;
-                    const nodeIndex = clickedMesh.userData.nodeIndex;
-                    showNodeDetails(nodeIndex);
-                }
-            });
         }
 
         function createEdges() {
