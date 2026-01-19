@@ -573,6 +573,26 @@
             directionalLight.position.set(100, 100, 100);
             scene.add(directionalLight);
             
+            // Setup click handler once (not inside createNodes)
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            renderer.domElement.addEventListener('click', (event) => {
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(nodeMeshes);
+
+                if (intersects.length > 0) {
+                    const clickedMesh = intersects[0].object;
+                    const nodeIndex = clickedMesh.userData.nodeIndex;
+                    if (nodeIndex !== undefined && nodes[nodeIndex]) {
+                        showNodeDetails(nodeIndex);
+                    }
+                }
+            });
+            
             window.addEventListener('resize', onWindowResize);
         }
 
@@ -879,19 +899,28 @@
             }
             
             content += '<h4>Key Takeaways</h4>';
-            episode.key_takeaways.forEach(takeaway => {
-                content += `<div class="takeaway">${takeaway}</div>`;
-            });
+            if (episode.key_takeaways && episode.key_takeaways.length > 0) {
+                episode.key_takeaways.forEach(takeaway => {
+                    content += `<div class="takeaway">${takeaway}</div>`;
+                });
+            } else {
+                content += '<div class="takeaway">No takeaways available</div>';
+            }
             
             document.getElementById('detail-content').innerHTML = content;
             document.getElementById('node-details').classList.add('visible');
             document.getElementById('show-connected-btn').style.display = 'block';
             
+            // Reset previous selected node scale
             if (selectedNode) {
                 selectedNode.scale.set(1, 1, 1);
             }
-            selectedNode = nodeMeshes[nodeIndex];
-            selectedNode.scale.set(1.5, 1.5, 1.5);
+            
+            // Highlight the clicked node
+            if (nodeMeshes[nodeIndex]) {
+                selectedNode = nodeMeshes[nodeIndex];
+                selectedNode.scale.set(1.5, 1.5, 1.5);
+            }
         }
 
         function showConnectedNodes() {
