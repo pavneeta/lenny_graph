@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import * as THREE from 'three';
 import { Node, Edge } from '@/types';
 import { getCategoryColor } from '@/lib/colors';
@@ -22,6 +22,11 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
   const animationFrameRef = useRef<number | null>(null);
   const nodesRef = useRef<Node[]>(nodes);
   const edgesRef = useRef<Edge[]>(edges);
+  const onNodeClickRef = useRef(onNodeClick);
+
+  useEffect(() => {
+    onNodeClickRef.current = onNodeClick;
+  }, [onNodeClick]);
 
   useEffect(() => {
     nodesRef.current = nodes;
@@ -45,7 +50,7 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(width, height);
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Limit pixel ratio for performance
     containerRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
@@ -65,11 +70,24 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
     directionalLight.position.set(50, 50, 50);
     scene.add(directionalLight);
 
-    // Create graph
+    // Create graph function
     const createGraph = () => {
       // Clear existing meshes
-      nodeMeshesRef.current.forEach(mesh => scene.remove(mesh));
-      edgeLinesRef.current.forEach(line => scene.remove(line));
+      nodeMeshesRef.current.forEach(mesh => {
+        scene.remove(mesh);
+        mesh.geometry.dispose();
+        const material = mesh.material;
+        if (Array.isArray(material)) {
+          material.forEach(mat => mat.dispose());
+        } else {
+          material.dispose();
+        }
+      });
+      edgeLinesRef.current.forEach(line => {
+        scene.remove(line);
+        line.geometry.dispose();
+        line.material.dispose();
+      });
       nodeMeshesRef.current = [];
       edgeLinesRef.current = [];
 
@@ -105,10 +123,12 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
         nodeMeshesRef.current.push(mesh);
       });
 
-      // Create edges (use neutral gray color)
+      // Create edges
       currentEdges.forEach(edge => {
         const source = currentNodes[edge.source];
         const target = currentNodes[edge.target];
+        
+        if (!source || !target) return;
         
         const geometry = new THREE.BufferGeometry().setFromPoints([
           new THREE.Vector3(...source.position),
@@ -132,50 +152,54 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
     const mouse = new THREE.Vector2();
 
     const handleClick = (event: MouseEvent) => {
-      if (!containerRef.current) return;
+      if (!containerRef.current || !cameraRef.current) return;
       
       const rect = containerRef.current.getBoundingClientRect();
       mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-      raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObjects(nodeMeshesRef.current);
+      raycaster.setFromCamera(mouse, cameraRef.current);
+      const intersects = raycaster.intersectObjects(nodeMeshesRef.current, true);
 
-      if (intersects.length > 0 && onNodeClick) {
+      if (intersects.length > 0) {
+        event.preventDefault();
+        event.stopPropagation();
+        
         const clickedMesh = intersects[0].object as THREE.Mesh;
-        const nodeIndex = clickedMesh.userData.nodeIndex;
-        // Pass the episode directly to avoid index mismatch issues
-        if (clickedMesh.userData.episode) {
-          // Find the actual index in current filtered nodes
-          const currentNodes = nodesRef.current;
-          const foundIndex = currentNodes.findIndex(
-            n => n.episode.episode_name === clickedMesh.userData.episode.episode_name
-          );
-          if (foundIndex !== -1) {
-            onNodeClick(foundIndex);
-          } else {
-            onNodeClick(nodeIndex);
-          }
-        } else {
-          onNodeClick(nodeIndex);
+        // Traverse up to find the actual mesh (might be inside a group)
+        let actualMesh = clickedMesh;
+        while (actualMesh.parent && actualMesh.parent !== scene) {
+          actualMesh = actualMesh.parent as THREE.Mesh;
+        }
+        
+        const nodeIndex = actualMesh.userData.nodeIndex ?? clickedMesh.userData.nodeIndex;
+        
+        if (nodeIndex !== undefined && nodeIndex !== null && onNodeClickRef.current) {
+          onNodeClickRef.current(nodeIndex);
         }
       }
     };
 
-    containerRef.current.addEventListener('click', handleClick);
+    containerRef.current.addEventListener('click', handleClick, { passive: false });
 
-    // Force-directed layout
+    // Force-directed layout (simplified for performance)
     const updateLayout = () => {
       const currentNodes = nodesRef.current;
       const currentEdges = edgesRef.current;
+      
+      if (currentNodes.length === 0) return;
       
       const repulsionStrength = 0.1;
       const attractionStrength = 0.01;
       const damping = 0.9;
 
-      // Repulsion between all nodes
-      for (let i = 0; i < currentNodes.length; i++) {
-        for (let j = i + 1; j < currentNodes.length; j++) {
+      // Repulsion between all nodes (limit iterations for performance)
+      const maxRepulsionChecks = Math.min(currentNodes.length * 10, 5000);
+      let repulsionCount = 0;
+      
+      for (let i = 0; i < currentNodes.length && repulsionCount < maxRepulsionChecks; i++) {
+        for (let j = i + 1; j < currentNodes.length && repulsionCount < maxRepulsionChecks; j++) {
+          repulsionCount++;
           const node1 = currentNodes[i];
           const node2 = currentNodes[j];
           const diff = [
@@ -203,6 +227,8 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
       currentEdges.forEach(edge => {
         const source = currentNodes[edge.source];
         const target = currentNodes[edge.target];
+        if (!source || !target) return;
+        
         const diff = [
           target.position[0] - source.position[0],
           target.position[1] - source.position[1],
@@ -244,11 +270,13 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
         }
       });
 
-      // Update edge lines
+      // Update edge lines (only update if changed significantly)
       currentEdges.forEach((edge, index) => {
         if (edgeLinesRef.current[index]) {
           const source = currentNodes[edge.source];
           const target = currentNodes[edge.target];
+          if (!source || !target) return;
+          
           const geometry = new THREE.BufferGeometry().setFromPoints([
             new THREE.Vector3(...source.position),
             new THREE.Vector3(...target.position)
@@ -308,12 +336,7 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
       
       edgeLinesRef.current.forEach(line => {
         line.geometry.dispose();
-        const material = line.material;
-        if (Array.isArray(material)) {
-          material.forEach(mat => mat.dispose());
-        } else {
-          material.dispose();
-        }
+        line.material.dispose();
         scene.remove(line);
       });
       
@@ -343,12 +366,7 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
     });
     edgeLinesRef.current.forEach(line => {
       line.geometry.dispose();
-      const material = line.material;
-      if (Array.isArray(material)) {
-        material.forEach(mat => mat.dispose());
-      } else {
-        material.dispose();
-      }
+      line.material.dispose();
       scene.remove(line);
     });
     nodeMeshesRef.current = [];
@@ -387,6 +405,8 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
       const source = currentNodes[edge.source];
       const target = currentNodes[edge.target];
       
+      if (!source || !target) return;
+      
       const geometry = new THREE.BufferGeometry().setFromPoints([
         new THREE.Vector3(...source.position),
         new THREE.Vector3(...target.position)
@@ -406,4 +426,3 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
 
   return <div ref={containerRef} className="w-full h-full" />;
 }
-

@@ -22,20 +22,24 @@ export function getCategoryColor(categories: string[]): number {
     return categoryColors['Default'];
   }
   
-  // Use the first category, or find a match
-  const firstCategory = categories[0];
-  const normalizedCategory = firstCategory.toLowerCase();
-  
-  // Try exact match first
-  if (categoryColors[firstCategory]) {
-    return categoryColors[firstCategory];
-  }
-  
-  // Try partial matches
-  for (const [key, color] of Object.entries(categoryColors)) {
-    if (normalizedCategory.includes(key.toLowerCase()) || 
-        key.toLowerCase().includes(normalizedCategory)) {
-      return color;
+  // Try each category in order
+  for (const category of categories) {
+    // Try exact match first (case-insensitive)
+    const categoryKey = Object.keys(categoryColors).find(
+      key => key.toLowerCase() === category.toLowerCase()
+    );
+    if (categoryKey) {
+      return categoryColors[categoryKey];
+    }
+    
+    // Try partial matches
+    const normalizedCategory = category.toLowerCase();
+    for (const [key, color] of Object.entries(categoryColors)) {
+      const normalizedKey = key.toLowerCase();
+      if (normalizedCategory.includes(normalizedKey) || 
+          normalizedKey.includes(normalizedCategory)) {
+        return color;
+      }
     }
   }
   

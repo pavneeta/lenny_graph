@@ -94,7 +94,7 @@ export default function Home() {
 
   const handleNodeClick = useCallback((nodeIndex: number) => {
     // Use the current filtered nodes directly
-    if (nodes[nodeIndex]) {
+    if (nodes && nodes[nodeIndex]) {
       setSelectedNode(nodes[nodeIndex].episode);
     }
   }, [nodes]);
