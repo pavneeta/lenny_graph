@@ -194,9 +194,9 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
       
       if (currentNodes.length === 0) return;
       
-      const repulsionStrength = 0.1;
-      const attractionStrength = 0.01;
-      const damping = 0.9;
+      const repulsionStrength = 0.03; // Reduced from 0.1
+      const attractionStrength = 0.003; // Reduced from 0.01
+      const damping = 0.95; // Increased from 0.9 for slower movement
 
       // Repulsion between all nodes (limit iterations for performance)
       const maxRepulsionChecks = Math.min(currentNodes.length * 10, 5000);
@@ -254,11 +254,17 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
         target.velocity[2] -= forceZ;
       });
 
-      // Update positions
+      // Update positions with velocity limits
+      const maxVelocity = 0.5; // Limit maximum velocity
       currentNodes.forEach((node, index) => {
         node.velocity[0] *= damping;
         node.velocity[1] *= damping;
         node.velocity[2] *= damping;
+        
+        // Cap velocity to prevent excessive movement
+        node.velocity[0] = Math.max(-maxVelocity, Math.min(maxVelocity, node.velocity[0]));
+        node.velocity[1] = Math.max(-maxVelocity, Math.min(maxVelocity, node.velocity[1]));
+        node.velocity[2] = Math.max(-maxVelocity, Math.min(maxVelocity, node.velocity[2]));
         
         node.position[0] += node.velocity[0];
         node.position[1] += node.velocity[1];
