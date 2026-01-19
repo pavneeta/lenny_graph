@@ -13,8 +13,8 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: #0a0a0a;
-            color: #fff;
+            background: #ffffff;
+            color: #333;
             overflow: hidden;
         }
 
@@ -23,23 +23,24 @@
             top: 0;
             left: 0;
             right: 0;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             padding: 15px 20px;
             z-index: 200;
-            border-bottom: 1px solid rgba(74, 158, 255, 0.3);
+            border-bottom: 2px solid #ff6b35;
             backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
 
         #header h1 {
             font-size: 24px;
-            color: #4a9eff;
+            color: #ff6b35;
             margin: 0;
             font-weight: 600;
         }
 
         #header p {
             font-size: 12px;
-            color: #aaa;
+            color: #666;
             margin-top: 5px;
         }
 
@@ -59,23 +60,25 @@
             position: absolute;
             top: 100px;
             left: 20px;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(255, 255, 255, 0.95);
             padding: 20px;
             border-radius: 10px;
             z-index: 100;
             max-width: 400px;
             backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
         #controls h2 {
             margin-bottom: 15px;
             font-size: 18px;
-            color: #fff;
+            color: #ff6b35;
         }
 
         #controls p {
             font-size: 12px;
-            color: #aaa;
+            color: #666;
             margin-bottom: 10px;
         }
 
@@ -83,7 +86,7 @@
             position: absolute;
             top: 100px;
             right: 20px;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             padding: 25px;
             border-radius: 10px;
             z-index: 100;
@@ -92,7 +95,8 @@
             overflow-y: auto;
             display: none;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 2px solid #ff6b35;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
         }
 
         #node-details.visible {
@@ -100,13 +104,13 @@
         }
 
         #node-details h3 {
-            color: #4a9eff;
+            color: #ff6b35;
             margin-bottom: 15px;
             font-size: 20px;
         }
 
         #node-details h4 {
-            color: #fff;
+            color: #333;
             margin-top: 20px;
             margin-bottom: 10px;
             font-size: 14px;
@@ -116,23 +120,24 @@
 
         .tag {
             display: inline-block;
-            background: rgba(74, 158, 255, 0.2);
-            color: #4a9eff;
+            background: rgba(255, 107, 53, 0.15);
+            color: #ff6b35;
             padding: 5px 12px;
             border-radius: 15px;
             font-size: 11px;
             margin: 5px 5px 5px 0;
-            border: 1px solid rgba(74, 158, 255, 0.3);
+            border: 1px solid rgba(255, 107, 53, 0.3);
         }
 
         .takeaway {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 107, 53, 0.05);
             padding: 12px;
             border-radius: 5px;
             margin-bottom: 10px;
             font-size: 12px;
             line-height: 1.6;
-            border-left: 3px solid rgba(74, 158, 255, 0.5);
+            border-left: 3px solid #ff6b35;
+            color: #333;
         }
 
         .close-btn {
@@ -141,7 +146,7 @@
             right: 15px;
             background: none;
             border: none;
-            color: #fff;
+            color: #ff6b35;
             font-size: 24px;
             cursor: pointer;
             width: 30px;
@@ -154,32 +159,36 @@
         }
 
         .close-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 107, 53, 0.1);
         }
 
         #stats {
             position: absolute;
             bottom: 20px;
             left: 20px;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(255, 255, 255, 0.95);
             padding: 15px;
             border-radius: 10px;
             z-index: 100;
             font-size: 12px;
             backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            color: #333;
         }
 
         #filters {
             position: absolute;
             left: 20px;
             top: 300px;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(255, 255, 255, 0.95);
             padding: 20px;
             border-radius: 10px;
             z-index: 100;
             max-width: 400px;
             backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 107, 53, 0.2);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
         #filters.collapsed #filter-content {
@@ -190,9 +199,9 @@
             position: absolute;
             top: 10px;
             right: 10px;
-            background: rgba(74, 158, 255, 0.2);
-            border: 1px solid rgba(74, 158, 255, 0.3);
-            color: #4a9eff;
+            background: rgba(255, 107, 53, 0.15);
+            border: 1px solid rgba(255, 107, 53, 0.3);
+            color: #ff6b35;
             width: 30px;
             height: 30px;
             border-radius: 5px;
@@ -202,7 +211,7 @@
         }
 
         #filter-toggle:hover {
-            background: rgba(74, 158, 255, 0.3);
+            background: rgba(255, 107, 53, 0.25);
         }
 
         #filter-content {
@@ -212,7 +221,7 @@
         #filters h3 {
             margin-bottom: 15px;
             font-size: 16px;
-            color: #fff;
+            color: #ff6b35;
         }
 
         .filter-group {
@@ -222,16 +231,22 @@
         .search-box {
             width: 100%;
             padding: 10px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 107, 53, 0.3);
             border-radius: 5px;
-            color: #fff;
+            color: #333;
             font-size: 12px;
             margin-bottom: 15px;
         }
 
         .search-box::placeholder {
-            color: #888;
+            color: #999;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #ff6b35;
+            box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.2);
         }
 
         .dimension-filter {
@@ -242,34 +257,34 @@
             display: block;
             margin-bottom: 8px;
             font-size: 12px;
-            color: #fff;
+            color: #333;
         }
 
         .dimension-filter select {
             width: 100%;
             padding: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 107, 53, 0.3);
             border-radius: 5px;
-            color: #fff;
+            color: #333;
             font-size: 12px;
             min-height: 100px;
         }
 
         .dimension-filter select option {
-            background: #1a1a1a;
-            color: #fff;
+            background: #ffffff;
+            color: #333;
             padding: 5px;
         }
 
         .dimension-filter select option:checked {
-            background: rgba(74, 158, 255, 0.3);
+            background: rgba(255, 107, 53, 0.2);
         }
 
         .filter-btn {
-            background: rgba(74, 158, 255, 0.2);
-            color: #4a9eff;
-            border: 1px solid rgba(74, 158, 255, 0.3);
+            background: rgba(255, 107, 53, 0.15);
+            color: #ff6b35;
+            border: 1px solid rgba(255, 107, 53, 0.3);
             padding: 6px 12px;
             border-radius: 5px;
             cursor: pointer;
@@ -279,23 +294,24 @@
         }
 
         .filter-btn:hover {
-            background: rgba(74, 158, 255, 0.3);
+            background: rgba(255, 107, 53, 0.25);
         }
 
         .connected-nodes-btn {
-            background: rgba(255, 193, 7, 0.2);
-            color: #ffc107;
-            border: 1px solid rgba(255, 193, 7, 0.3);
+            background: rgba(255, 107, 53, 0.2);
+            color: #ff6b35;
+            border: 2px solid #ff6b35;
             padding: 8px 15px;
             border-radius: 5px;
             cursor: pointer;
             font-size: 12px;
             margin-top: 15px;
             width: 100%;
+            font-weight: 600;
         }
 
         .connected-nodes-btn:hover {
-            background: rgba(255, 193, 7, 0.3);
+            background: rgba(255, 107, 53, 0.3);
         }
     </style>
 </head>
@@ -328,7 +344,7 @@
                     <select id="topic-filter" multiple onchange="applyFilters()">
                         <option value="">All Topics</option>
                     </select>
-                    <small style="color: #888; font-size: 10px;">Hold Cmd/Ctrl to select multiple</small>
+                    <small style="color: #666; font-size: 10px;">Hold Cmd/Ctrl to select multiple</small>
                 </div>
                 
                 <div class="dimension-filter" style="margin-top: 15px;">
@@ -336,7 +352,7 @@
                     <select id="audience-filter" multiple onchange="applyFilters()">
                         <option value="">All Audiences</option>
                     </select>
-                    <small style="color: #888; font-size: 10px;">Hold Cmd/Ctrl to select multiple</small>
+                    <small style="color: #666; font-size: 10px;">Hold Cmd/Ctrl to select multiple</small>
                 </div>
                 
                 <div class="filter-actions" style="margin-top: 20px;">
@@ -344,7 +360,7 @@
                     <button class="filter-btn" onclick="clearConnectedFilter()" id="clear-connected-btn" style="display: none;">Clear Connected Filter</button>
                 </div>
                 
-                <p id="filter-info" style="margin-top: 15px; font-size: 11px; color: #888;">
+                <p id="filter-info" style="margin-top: 15px; font-size: 11px; color: #666;">
                     Showing: <span id="visible-count">0</span> / <span id="total-count">0</span> episodes
                 </p>
             </div>
@@ -395,8 +411,32 @@
         let connectedNodesMode = false;
         let connectedNodeIds = new Set();
 
-        const nodeColor = 0x4a9eff;
-        const connectedNodeColor = 0xffc107;
+        // Color mapping for categories/topics
+        const categoryColors = {
+            'product_management': 0xff6b35,      // Orange
+            'leadership': 0xff8c42,              // Light orange
+            'growth_strategy': 0xffa366,          // Lighter orange
+            'career_development': 0xffb88a,     // Even lighter
+            'strategy': 0xffcdae,                 // Very light orange
+            'company_culture': 0xff8c42,         // Medium orange
+            'hiring': 0xffa366,                  // Light orange
+            'analytics': 0xffb88a,               // Very light orange
+            'engineering': 0xff6b35,             // Orange
+            'product_development': 0xff8c42,     // Light orange
+            'productivity': 0xffa366,            // Lighter orange
+            'design': 0xffb88a,                  // Very light orange
+            'venture_capital': 0xffcdae,         // Lightest orange
+            'marketing': 0xff8c42,               // Medium orange
+            'communication': 0xffa366,           // Light orange
+            'branding': 0xffb88a,                // Very light orange
+            'sales': 0xffcdae,                   // Lightest orange
+            'ai': 0xff6b35,                      // Orange
+            'personal_development': 0xff8c42,   // Light orange
+            'community_building': 0xffa366,      // Lighter orange
+            'default': 0xff6b35                  // Default orange
+        };
+        
+        const connectedNodeColor = 0xff4500; // Darker orange for connected nodes
 
         async function init() {
             if (typeof THREE === 'undefined') {
@@ -464,7 +504,7 @@
 
         function setupScene() {
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x0a0a0a);
+            scene.background = new THREE.Color(0xffffff);
 
             const width = window.innerWidth;
             const height = window.innerHeight;
@@ -731,14 +771,31 @@
             }
         }
 
+        function getNodeColor(episode) {
+            if (!episode || !episode.topics || episode.topics.length === 0) {
+                return categoryColors.default;
+            }
+            
+            // Get the primary topic (first one) or most common
+            const primaryTopic = episode.topics[0];
+            return categoryColors[primaryTopic] || categoryColors.default;
+        }
+
         function createNodes() {
             nodes.forEach((node, index) => {
-                const color = node.isConnected ? connectedNodeColor : nodeColor;
+                let color;
+                if (node.isConnected) {
+                    color = connectedNodeColor;
+                } else {
+                    // Get color based on episode's primary topic/category
+                    color = getNodeColor(node.episode);
+                }
+                
                 const geometry = new THREE.SphereGeometry(3.0, 16, 16);
                 const material = new THREE.MeshPhongMaterial({ 
                     color: color,
                     emissive: color,
-                    emissiveIntensity: 0.4,
+                    emissiveIntensity: 0.3,
                     shininess: 100
                 });
                 
@@ -750,7 +807,7 @@
                 const glowMaterial = new THREE.MeshBasicMaterial({
                     color: color,
                     transparent: true,
-                    opacity: 0.4
+                    opacity: 0.3
                 });
                 const glow = new THREE.Mesh(glowGeometry, glowMaterial);
                 mesh.add(glow);
@@ -788,8 +845,8 @@
                 ]);
                 
                 const material = new THREE.LineBasicMaterial({
-                    color: nodeColor,
-                    opacity: 0.3,
+                    color: 0xff6b35,
+                    opacity: 0.2,
                     transparent: true
                 });
                 
@@ -809,12 +866,12 @@
             let content = '';
             
             if (episode.guest_name) {
-                content += `<p style="color: #aaa; margin-bottom: 15px;">Guest: ${episode.guest_name}</p>`;
+                content += `<p style="color: #666; margin-bottom: 15px;">Guest: ${episode.guest_name}</p>`;
             }
             
             const transcriptFileName = 'transcripts/' + encodeURIComponent(episode.episode_name + '.txt');
             content += `<p style="margin-bottom: 15px;">
-                <a href="${transcriptFileName}" target="_blank" style="color: #4a9eff; text-decoration: none; border: 1px solid rgba(74, 158, 255, 0.3); padding: 6px 12px; border-radius: 5px; display: inline-block; transition: background 0.2s;">
+                <a href="${transcriptFileName}" target="_blank" style="color: #ff6b35; text-decoration: none; border: 1px solid rgba(255, 107, 53, 0.3); padding: 6px 12px; border-radius: 5px; display: inline-block; transition: background 0.2s;">
                     📄 View Raw Transcript
                 </a>
             </p>`;
