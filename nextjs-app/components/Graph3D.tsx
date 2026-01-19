@@ -24,10 +24,15 @@ export default function Graph3D({ nodes, edges, onNodeClick, paused = false }: G
   const nodesRef = useRef<Node[]>(nodes);
   const edgesRef = useRef<Edge[]>(edges);
   const onNodeClickRef = useRef(onNodeClick);
+  const pausedRef = useRef(paused);
 
   useEffect(() => {
     onNodeClickRef.current = onNodeClick;
   }, [onNodeClick]);
+  
+  useEffect(() => {
+    pausedRef.current = paused;
+  }, [paused]);
 
   useEffect(() => {
     nodesRef.current = nodes;
@@ -307,7 +312,11 @@ export default function Graph3D({ nodes, edges, onNodeClick, paused = false }: G
         controlsRef.current.update();
       }
       
-      updateLayout();
+      // Only update layout if not paused
+      if (!pausedRef.current) {
+        updateLayout();
+      }
+      
       renderer.render(scene, camera);
     };
 
