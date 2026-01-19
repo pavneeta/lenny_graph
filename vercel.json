@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/",
-      "destination": "/graph_visualization_v2.html"
+      "destination": "/graph_visualization_v3.html"
     }
   ],
   "headers": [

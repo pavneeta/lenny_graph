@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pav's Lenny-Graph - Interactive Knowledge Graph</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0a0a;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        #header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px 20px;
+            z-index: 200;
+            border-bottom: 1px solid rgba(74, 158, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        #header h1 {
+            font-size: 24px;
+            color: #4a9eff;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        #header p {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        #container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            padding-top: 80px;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        #controls {
+            position: absolute;
+            top: 100px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 100;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+        }
+
+        #controls h2 {
+            margin-bottom: 15px;
+            font-size: 18px;
+            color: #fff;
+        }
+
+        #controls p {
+            font-size: 12px;
+            color: #aaa;
+            margin-bottom: 10px;
+        }
+
+        #node-details {
+            position: absolute;
+            top: 100px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 25px;
+            border-radius: 10px;
+            z-index: 100;
+            max-width: 450px;
+            max-height: 80vh;
+            overflow-y: auto;
+            display: none;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #node-details.visible {
+            display: block;
+        }
+
+        #node-details h3 {
+            color: #4a9eff;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        #node-details h4 {
+            color: #fff;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tag {
+            display: inline-block;
+            background: rgba(74, 158, 255, 0.2);
+            color: #4a9eff;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 11px;
+            margin: 5px 5px 5px 0;
+            border: 1px solid rgba(74, 158, 255, 0.3);
+        }
+
+        .takeaway {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            line-height: 1.6;
+            border-left: 3px solid rgba(74, 158, 255, 0.5);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        #stats {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            z-index: 100;
+            font-size: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        #filters {
+            position: absolute;
+            left: 20px;
+            top: 300px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 100;
+            max-width: 400px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        #filters.collapsed #filter-content {
+            display: none;
+        }
+
+        #filter-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(74, 158, 255, 0.2);
+            border: 1px solid rgba(74, 158, 255, 0.3);
+            color: #4a9eff;
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            z-index: 101;
+        }
+
+        #filter-toggle:hover {
+            background: rgba(74, 158, 255, 0.3);
+        }
+
+        #filter-content {
+            margin-top: 30px;
+        }
+
+        #filters h3 {
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: #fff;
+        }
+
+        .filter-group {
+            margin-bottom: 15px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            color: #fff;
+            font-size: 12px;
+            margin-bottom: 15px;
+        }
+
+        .search-box::placeholder {
+            color: #888;
+        }
+
+        .dimension-filter {
+            margin-bottom: 15px;
+        }
+
+        .dimension-filter label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 12px;
+            color: #fff;
+        }
+
+        .dimension-filter select {
+            width: 100%;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            color: #fff;
+            font-size: 12px;
+            min-height: 100px;
+        }
+
+        .dimension-filter select option {
+            background: #1a1a1a;
+            color: #fff;
+            padding: 5px;
+        }
+
+        .dimension-filter select option:checked {
+            background: rgba(74, 158, 255, 0.3);
+        }
+
+        .filter-btn {
+            background: rgba(74, 158, 255, 0.2);
+            color: #4a9eff;
+            border: 1px solid rgba(74, 158, 255, 0.3);
+            padding: 6px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 11px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        .filter-btn:hover {
+            background: rgba(74, 158, 255, 0.3);
+        }
+
+        .connected-nodes-btn {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .connected-nodes-btn:hover {
+            background: rgba(255, 193, 7, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <h1>Pav's Lenny-Graph</h1>
+        <p>Based on Lenny's Podcast - Interactive Knowledge Graph</p>
+    </div>
+
+    <div id="container">
+        <div id="canvas-container"></div>
+        
+        <div id="controls">
+            <h2>🎙️ Controls</h2>
+            <p><strong>Navigation:</strong></p>
+            <p>• Click and drag to rotate</p>
+            <p>• Scroll to zoom in/out</p>
+            <p>• Click on a node to see details</p>
+            <p>• Right-click and drag to pan</p>
+        </div>
+
+        <div id="filters">
+            <button id="filter-toggle" onclick="toggleFilters()">−</button>
+            <h3>🔍 Filter & Search</h3>
+            <div id="filter-content">
+                <input type="text" id="search-box" class="search-box" placeholder="🔍 Semantic search..." oninput="performSemanticSearch()">
+                
+                <div class="dimension-filter">
+                    <label for="topic-filter"><strong>Topics (Index):</strong></label>
+                    <select id="topic-filter" multiple onchange="applyFilters()">
+                        <option value="">All Topics</option>
+                    </select>
+                    <small style="color: #888; font-size: 10px;">Hold Cmd/Ctrl to select multiple</small>
+                </div>
+                
+                <div class="dimension-filter" style="margin-top: 15px;">
+                    <label for="audience-filter"><strong>Primary Audience:</strong></label>
+                    <select id="audience-filter" multiple onchange="applyFilters()">
+                        <option value="">All Audiences</option>
+                    </select>
+                    <small style="color: #888; font-size: 10px;">Hold Cmd/Ctrl to select multiple</small>
+                </div>
+                
+                <div class="filter-actions" style="margin-top: 20px;">
+                    <button class="filter-btn" onclick="resetFilters()">Reset All</button>
+                    <button class="filter-btn" onclick="clearConnectedFilter()" id="clear-connected-btn" style="display: none;">Clear Connected Filter</button>
+                </div>
+                
+                <p id="filter-info" style="margin-top: 15px; font-size: 11px; color: #888;">
+                    Showing: <span id="visible-count">0</span> / <span id="total-count">0</span> episodes
+                </p>
+            </div>
+        </div>
+
+        <div id="node-details">
+            <button class="close-btn" onclick="closeDetails()">×</button>
+            <h3 id="detail-title"></h3>
+            <div id="detail-content"></div>
+            <button class="connected-nodes-btn" onclick="showConnectedNodes()" id="show-connected-btn" style="display: none;">Show Connected Nodes Only</button>
+        </div>
+
+        <div id="stats">
+            <div id="stats-content">Loading...</div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        (function() {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js';
+            script.onload = function() {
+                console.log('OrbitControls loaded');
+            };
+            script.onerror = function() {
+                console.warn('Failed to load OrbitControls from CDN');
+            };
+            document.head.appendChild(script);
+        })();
+    </script>
+    
+    <script>
+        let scene, camera, renderer, controls;
+        let nodes = [];
+        let edges = [];
+        let nodeMeshes = [];
+        let edgeLines = [];
+        let selectedNode = null;
+        let selectedNodeIndex = null;
+        let episodesData = [];
+        let topicsIndex = {};
+        let allTopics = new Set();
+        let allAudiences = new Set();
+        let selectedTopics = new Set();
+        let selectedAudiences = new Set();
+        let searchQuery = '';
+        let connectedNodesMode = false;
+        let connectedNodeIds = new Set();
+
+        const nodeColor = 0x4a9eff;
+        const connectedNodeColor = 0xffc107;
+
+        async function init() {
+            if (typeof THREE === 'undefined') {
+                console.error('Three.js is not loaded!');
+                document.getElementById('stats-content').textContent = 'Error: Three.js failed to load';
+                return;
+            }
+            console.log('Three.js loaded, version:', THREE.REVISION);
+            
+            // Load topics index
+            try {
+                const indexResponse = await fetch('episodes_index.json');
+                topicsIndex = await indexResponse.json();
+                console.log('Topics index loaded:', Object.keys(topicsIndex.topics || {}).length, 'topics');
+            } catch (e) {
+                console.warn('Failed to load topics index:', e);
+            }
+            
+            // Load episodes data
+            fetch('Final_lenny_extracted_indexed.jsonl')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.text();
+                })
+                .then(text => {
+                    const lines = text.trim().split('\n');
+                    episodesData = lines.map((line, index) => {
+                        try {
+                            const episode = JSON.parse(line);
+                            
+                            const insights = (episode.key_takeaways || []).map(t => t.insight || t);
+                            const topics = episode.topics || [];
+                            const primary_audience = (episode.primary_audience || []).map(a => a.charAt(0).toUpperCase() + a.slice(1));
+                            
+                            return {
+                                episode_name: episode.host_name || 'Unknown',
+                                guest_name: episode.host_name || 'Unknown',
+                                key_takeaways: insights.slice(0, 5),
+                                topics: topics,
+                                primary_audience: primary_audience,
+                                file_path: episode.file_path || '',
+                                raw_episode: episode
+                            };
+                        } catch (e) {
+                            console.error(`Error parsing line ${index + 1}:`, e);
+                            return null;
+                        }
+                    }).filter(ep => ep !== null);
+                    console.log(`Loaded ${episodesData.length} episodes`);
+                    
+                    setupScene();
+                    collectDimensions();
+                    createFilters();
+                    createGraph();
+                    animate();
+                    updateStats();
+                })
+                .catch(error => {
+                    console.error('Error loading data:', error);
+                    document.getElementById('stats-content').textContent = 'Error loading data: ' + error.message;
+                });
+        }
+
+        function setupScene() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a0a);
+
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 10000);
+            camera.position.set(0, 0, 300);
+            camera.lookAt(0, 0, 0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            const canvasContainer = document.getElementById('canvas-container');
+            if (canvasContainer) {
+                canvasContainer.appendChild(renderer.domElement);
+            }
+
+            try {
+                if (typeof THREE !== 'undefined' && typeof THREE.OrbitControls !== 'undefined') {
+                    controls = new THREE.OrbitControls(camera, renderer.domElement);
+                    controls.enableDamping = true;
+                    controls.dampingFactor = 0.05;
+                    controls.minDistance = 50;
+                    controls.maxDistance = 500;
+                    controls.autoRotate = false;
+                } else {
+                    throw new Error('OrbitControls not available');
+                }
+            } catch (e) {
+                console.warn('Using fallback controls:', e.message);
+                let isDragging = false;
+                let previousMousePosition = { x: 0, y: 0 };
+                let mouseDown = false;
+                
+                renderer.domElement.addEventListener('mousedown', (e) => {
+                    mouseDown = true;
+                    isDragging = true;
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
+                });
+                
+                renderer.domElement.addEventListener('mousemove', (e) => {
+                    if (mouseDown && isDragging) {
+                        const deltaX = e.clientX - previousMousePosition.x;
+                        const deltaY = e.clientY - previousMousePosition.y;
+                        camera.position.x += deltaX * 0.1;
+                        camera.position.y -= deltaY * 0.1;
+                        previousMousePosition = { x: e.clientX, y: e.clientY };
+                    }
+                });
+                
+                renderer.domElement.addEventListener('mouseup', () => {
+                    mouseDown = false;
+                    isDragging = false;
+                });
+                
+                renderer.domElement.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    camera.position.z += e.deltaY * 0.1;
+                    camera.position.z = Math.max(50, Math.min(500, camera.position.z));
+                });
+                
+                controls = { update: () => {} };
+            }
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(100, 100, 100);
+            scene.add(directionalLight);
+            
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function collectDimensions() {
+            episodesData.forEach(episode => {
+                if (episode.topics) {
+                    episode.topics.forEach(topic => allTopics.add(topic));
+                }
+                if (episode.primary_audience) {
+                    episode.primary_audience.forEach(aud => allAudiences.add(aud));
+                }
+            });
+        }
+
+        function createFilters() {
+            const topicSelect = document.getElementById('topic-filter');
+            Array.from(allTopics).sort().forEach(topic => {
+                const option = document.createElement('option');
+                option.value = topic;
+                option.textContent = topic.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                topicSelect.appendChild(option);
+            });
+            
+            const audienceSelect = document.getElementById('audience-filter');
+            Array.from(allAudiences).sort().forEach(audience => {
+                const option = document.createElement('option');
+                option.value = audience;
+                option.textContent = audience;
+                audienceSelect.appendChild(option);
+            });
+            
+            document.getElementById('total-count').textContent = episodesData.length;
+        }
+
+        function performSemanticSearch() {
+            searchQuery = document.getElementById('search-box').value.toLowerCase().trim();
+            applyFilters();
+        }
+
+        function applyFilters() {
+            const topicSelect = document.getElementById('topic-filter');
+            const audienceSelect = document.getElementById('audience-filter');
+            
+            const selectedTopicsList = Array.from(topicSelect.selectedOptions).map(opt => opt.value).filter(v => v);
+            const selectedAuds = Array.from(audienceSelect.selectedOptions).map(opt => opt.value).filter(v => v);
+            
+            selectedTopics.clear();
+            selectedTopicsList.forEach(t => selectedTopics.add(t));
+            selectedAudiences.clear();
+            selectedAuds.forEach(a => selectedAudiences.add(a));
+            
+            let filteredEpisodes = episodesData.filter(episode => {
+                // Topic filter
+                if (selectedTopics.size > 0) {
+                    const hasTopic = episode.topics && episode.topics.some(topic => selectedTopics.has(topic));
+                    if (!hasTopic) return false;
+                }
+                
+                // Audience filter
+                if (selectedAudiences.size > 0) {
+                    const hasAudience = episode.primary_audience && episode.primary_audience.some(aud => selectedAudiences.has(aud));
+                    if (!hasAudience) return false;
+                }
+                
+                // Semantic search
+                if (searchQuery) {
+                    const searchText = (
+                        episode.episode_name + ' ' +
+                        episode.guest_name + ' ' +
+                        (episode.key_takeaways || []).join(' ') +
+                        (episode.topics || []).join(' ')
+                    ).toLowerCase();
+                    if (!searchText.includes(searchQuery)) return false;
+                }
+                
+                // Connected nodes filter
+                if (connectedNodesMode && connectedNodeIds.size > 0) {
+                    const episodeIndex = episodesData.indexOf(episode);
+                    if (!connectedNodeIds.has(episodeIndex)) return false;
+                }
+                
+                return true;
+            });
+            
+            document.getElementById('visible-count').textContent = filteredEpisodes.length;
+            
+            // Clear existing
+            nodeMeshes.forEach(mesh => scene.remove(mesh));
+            edgeLines.forEach(line => scene.remove(line));
+            nodeMeshes = [];
+            edgeLines = [];
+            nodes = [];
+            edges = [];
+            
+            // Create nodes
+            filteredEpisodes.forEach((episode, index) => {
+                const originalIndex = episodesData.indexOf(episode);
+                const angle = (index / filteredEpisodes.length) * Math.PI * 2;
+                const radius = 30 + Math.random() * 40;
+                const x = Math.cos(angle) * radius;
+                const y = Math.sin(angle) * radius;
+                const z = (Math.random() - 0.5) * 30;
+
+                nodes.push({
+                    id: index,
+                    episode: episode,
+                    originalIndex: originalIndex,
+                    position: new THREE.Vector3(x, y, z),
+                    velocity: new THREE.Vector3(0, 0, 0),
+                    isConnected: connectedNodeIds.has(originalIndex)
+                });
+            });
+            
+            // Create edges based on shared topics
+            filteredEpisodes.forEach((episode1, i) => {
+                filteredEpisodes.forEach((episode2, j) => {
+                    if (i >= j) return;
+                    
+                    const sharedTopics = (episode1.topics || []).filter(topic => 
+                        (episode2.topics || []).includes(topic)
+                    ).length;
+                    
+                    if (sharedTopics >= 1) {
+                        edges.push({
+                            source: i,
+                            target: j,
+                            strength: sharedTopics
+                        });
+                    }
+                });
+            });
+            
+            applyForceLayout();
+            createNodes();
+            createEdges();
+            updateStats();
+        }
+
+        function resetFilters() {
+            document.getElementById('topic-filter').selectedIndex = -1;
+            document.getElementById('audience-filter').selectedIndex = -1;
+            document.getElementById('search-box').value = '';
+            searchQuery = '';
+            clearConnectedFilter();
+            applyFilters();
+        }
+
+        function clearConnectedFilter() {
+            connectedNodesMode = false;
+            connectedNodeIds.clear();
+            document.getElementById('clear-connected-btn').style.display = 'none';
+            applyFilters();
+        }
+
+        function createGraph() {
+            applyFilters();
+        }
+
+        function applyForceLayout() {
+            const iterations = 100;
+            const k = Math.sqrt((30 * 30) / nodes.length);
+            const repulsionStrength = 0.1;
+            const attractionStrength = 0.01;
+
+            for (let iter = 0; iter < iterations; iter++) {
+                nodes.forEach((node1, i) => {
+                    node1.velocity.multiplyScalar(0.9);
+                    nodes.forEach((node2, j) => {
+                        if (i === j) return;
+                        const diff = new THREE.Vector3().subVectors(node1.position, node2.position);
+                        const distance = diff.length() || 0.1;
+                        const force = repulsionStrength * k * k / distance;
+                        diff.normalize().multiplyScalar(force);
+                        node1.velocity.add(diff);
+                    });
+                });
+
+                edges.forEach(edge => {
+                    const source = nodes[edge.source];
+                    const target = nodes[edge.target];
+                    const diff = new THREE.Vector3().subVectors(target.position, source.position);
+                    const distance = diff.length() || 0.1;
+                    const force = attractionStrength * distance * edge.strength / 2;
+                    diff.normalize().multiplyScalar(force);
+                    source.velocity.add(diff);
+                    target.velocity.sub(diff);
+                });
+
+                nodes.forEach(node => {
+                    node.position.add(node.velocity);
+                    node.position.clamp(
+                        new THREE.Vector3(-100, -100, -50),
+                        new THREE.Vector3(100, 100, 50)
+                    );
+                });
+            }
+        }
+
+        function createNodes() {
+            nodes.forEach((node, index) => {
+                const color = node.isConnected ? connectedNodeColor : nodeColor;
+                const geometry = new THREE.SphereGeometry(3.0, 16, 16);
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: color,
+                    emissive: color,
+                    emissiveIntensity: 0.4,
+                    shininess: 100
+                });
+                
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.copy(node.position);
+                mesh.userData = { nodeIndex: index };
+                
+                const glowGeometry = new THREE.SphereGeometry(3.5, 16, 16);
+                const glowMaterial = new THREE.MeshBasicMaterial({
+                    color: color,
+                    transparent: true,
+                    opacity: 0.4
+                });
+                const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+                mesh.add(glow);
+                
+                scene.add(mesh);
+                nodeMeshes.push(mesh);
+            });
+
+            const raycaster = new THREE.Raycaster();
+            const mouse = new THREE.Vector2();
+
+            renderer.domElement.addEventListener('click', (event) => {
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(nodeMeshes);
+
+                if (intersects.length > 0) {
+                    const clickedMesh = intersects[0].object;
+                    const nodeIndex = clickedMesh.userData.nodeIndex;
+                    showNodeDetails(nodeIndex);
+                }
+            });
+        }
+
+        function createEdges() {
+            edges.forEach(edge => {
+                const source = nodes[edge.source];
+                const target = nodes[edge.target];
+                
+                const geometry = new THREE.BufferGeometry().setFromPoints([
+                    source.position,
+                    target.position
+                ]);
+                
+                const material = new THREE.LineBasicMaterial({
+                    color: nodeColor,
+                    opacity: 0.3,
+                    transparent: true
+                });
+                
+                const line = new THREE.Line(geometry, material);
+                scene.add(line);
+                edgeLines.push(line);
+            });
+        }
+
+        function showNodeDetails(nodeIndex) {
+            const node = nodes[nodeIndex];
+            const episode = node.episode;
+            selectedNodeIndex = node.originalIndex;
+            
+            document.getElementById('detail-title').textContent = episode.episode_name;
+            
+            let content = '';
+            
+            if (episode.guest_name) {
+                content += `<p style="color: #aaa; margin-bottom: 15px;">Guest: ${episode.guest_name}</p>`;
+            }
+            
+            const transcriptFileName = 'transcripts/' + encodeURIComponent(episode.episode_name + '.txt');
+            content += `<p style="margin-bottom: 15px;">
+                <a href="${transcriptFileName}" target="_blank" style="color: #4a9eff; text-decoration: none; border: 1px solid rgba(74, 158, 255, 0.3); padding: 6px 12px; border-radius: 5px; display: inline-block; transition: background 0.2s;">
+                    📄 View Raw Transcript
+                </a>
+            </p>`;
+            
+            if (episode.topics && episode.topics.length > 0) {
+                content += '<h4>Topics</h4>';
+                content += '<div>';
+                episode.topics.forEach(topic => {
+                    const displayTopic = topic.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    content += `<span class="tag">${displayTopic}</span>`;
+                });
+                content += '</div>';
+            }
+            
+            if (episode.primary_audience && episode.primary_audience.length > 0) {
+                content += '<h4>Primary Audience</h4>';
+                content += '<div>';
+                episode.primary_audience.forEach(aud => {
+                    content += `<span class="tag">${aud}</span>`;
+                });
+                content += '</div>';
+            }
+            
+            content += '<h4>Key Takeaways</h4>';
+            episode.key_takeaways.forEach(takeaway => {
+                content += `<div class="takeaway">${takeaway}</div>`;
+            });
+            
+            document.getElementById('detail-content').innerHTML = content;
+            document.getElementById('node-details').classList.add('visible');
+            document.getElementById('show-connected-btn').style.display = 'block';
+            
+            if (selectedNode) {
+                selectedNode.scale.set(1, 1, 1);
+            }
+            selectedNode = nodeMeshes[nodeIndex];
+            selectedNode.scale.set(1.5, 1.5, 1.5);
+        }
+
+        function showConnectedNodes() {
+            if (selectedNodeIndex === null) return;
+            
+            connectedNodesMode = true;
+            connectedNodeIds.clear();
+            connectedNodeIds.add(selectedNodeIndex);
+            
+            // Find all nodes connected to the selected node
+            const selectedEpisode = episodesData[selectedNodeIndex];
+            episodesData.forEach((episode, index) => {
+                if (index === selectedNodeIndex) return;
+                
+                const sharedTopics = (selectedEpisode.topics || []).filter(topic => 
+                    (episode.topics || []).includes(topic)
+                );
+                
+                if (sharedTopics.length > 0) {
+                    connectedNodeIds.add(index);
+                }
+            });
+            
+            document.getElementById('clear-connected-btn').style.display = 'block';
+            applyFilters();
+        }
+
+        function closeDetails() {
+            document.getElementById('node-details').classList.remove('visible');
+            document.getElementById('show-connected-btn').style.display = 'none';
+            if (selectedNode) {
+                selectedNode.scale.set(1, 1, 1);
+                selectedNode = null;
+            }
+            selectedNodeIndex = null;
+        }
+
+        function updateStats() {
+            const totalNodes = nodes.length;
+            const totalEdges = edges.length;
+            const avgConnections = totalNodes > 0 ? (totalEdges * 2 / totalNodes).toFixed(1) : 0;
+            
+            document.getElementById('stats-content').innerHTML = `
+                <strong>Graph Statistics</strong><br>
+                Episodes: ${totalNodes}<br>
+                Connections: ${totalEdges}<br>
+                Avg Connections: ${avgConnections}
+            `;
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (nodeMeshes && nodeMeshes.length > 0) {
+                nodeMeshes.forEach((mesh, i) => {
+                    if (nodes[i] && mesh) {
+                        const node = nodes[i];
+                        const time = Date.now() * 0.001;
+                        mesh.position.x = node.position.x;
+                        mesh.position.y = node.position.y + Math.sin(time + i) * 0.5;
+                        mesh.position.z = node.position.z;
+                        mesh.rotation.y += 0.01;
+                    }
+                });
+            }
+            
+            if (edgeLines && edgeLines.length > 0) {
+                edgeLines.forEach((line, i) => {
+                    if (edges[i]) {
+                        const edge = edges[i];
+                        const source = nodes[edge.source];
+                        const target = nodes[edge.target];
+                        if (source && target) {
+                            const geometry = new THREE.BufferGeometry().setFromPoints([
+                                source.position,
+                                target.position
+                            ]);
+                            line.geometry.dispose();
+                            line.geometry = geometry;
+                        }
+                    }
+                });
+            }
+            
+            if (controls && controls.update) {
+                controls.update();
+            }
+            
+            if (renderer && scene && camera) {
+                renderer.render(scene, camera);
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function toggleFilters() {
+            const filters = document.getElementById('filters');
+            const toggle = document.getElementById('filter-toggle');
+            
+            if (filters.classList.contains('collapsed')) {
+                filters.classList.remove('collapsed');
+                toggle.textContent = '−';
+                toggle.title = 'Collapse filters';
+            } else {
+                filters.classList.add('collapsed');
+                toggle.textContent = '+';
+                toggle.title = 'Expand filters';
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
+
