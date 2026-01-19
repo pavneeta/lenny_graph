@@ -531,6 +531,29 @@
                     controls.minDistance = 50;
                     controls.maxDistance = 500;
                     controls.autoRotate = false;
+                    
+                    // Track camera position to detect drags
+                    let cameraPositionBefore = camera.position.clone();
+                    let isOrbitDragging = false;
+                    
+                    controls.addEventListener('start', () => {
+                        isOrbitDragging = true;
+                        cameraPositionBefore = camera.position.clone();
+                    });
+                    
+                    controls.addEventListener('end', () => {
+                        // Check if camera moved (it was a drag) or stayed (it was a click)
+                        const cameraMoved = camera.position.distanceTo(cameraPositionBefore) > 0.01;
+                        if (!cameraMoved) {
+                            // It was a click, handle it
+                            setTimeout(() => {
+                                if (window.handleNodeClick) {
+                                    window.handleNodeClick();
+                                }
+                            }, 10);
+                        }
+                        isOrbitDragging = false;
+                    });
                 } else {
                     throw new Error('OrbitControls not available');
                 }
@@ -581,53 +604,61 @@
             raycaster = new THREE.Raycaster();
             mouse = new THREE.Vector2();
             
-            // Setup click handler - use mousedown/mouseup to distinguish from drag
-            let mouseDownTime = 0;
-            let mouseDownPos = null;
+            // Function to handle node clicks
+            function handleNodeClick(event) {
+                if (!event) {
+                    // Called from OrbitControls end event
+                    event = { clientX: window.innerWidth / 2, clientY: window.innerHeight / 2 };
+                }
+                
+                // Calculate mouse position in normalized device coordinates
+                const rect = renderer.domElement.getBoundingClientRect();
+                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+                // Update raycaster with current camera and mouse position
+                raycaster.setFromCamera(mouse, camera);
+                const intersects = raycaster.intersectObjects(nodeMeshes);
+
+                console.log('Raycast check:', {
+                    mousePos: { x: mouse.x, y: mouse.y },
+                    nodeMeshesCount: nodeMeshes.length,
+                    intersectsCount: intersects.length
+                });
+
+                if (intersects.length > 0) {
+                    const clickedMesh = intersects[0].object;
+                    const nodeIndex = clickedMesh.userData.nodeIndex;
+                    console.log('Node clicked:', nodeIndex, clickedMesh, nodes[nodeIndex]);
+                    if (nodeIndex !== undefined && nodes[nodeIndex]) {
+                        showNodeDetails(nodeIndex);
+                    }
+                }
+            }
             
+            // Store handleNodeClick globally so OrbitControls can call it
+            window.handleNodeClick = handleNodeClick;
+            
+            // Also add direct click handler as fallback
+            let lastMouseDown = { time: 0, x: 0, y: 0 };
             renderer.domElement.addEventListener('mousedown', (event) => {
-                mouseDownTime = Date.now();
-                mouseDownPos = { x: event.clientX, y: event.clientY };
-                isDragging = false;
+                lastMouseDown = {
+                    time: Date.now(),
+                    x: event.clientX,
+                    y: event.clientY
+                };
             });
             
-            renderer.domElement.addEventListener('mousemove', (event) => {
-                if (mouseDownPos) {
-                    const dx = Math.abs(event.clientX - mouseDownPos.x);
-                    const dy = Math.abs(event.clientY - mouseDownPos.y);
-                    if (dx > 5 || dy > 5) {
-                        isDragging = true;
-                    }
-                }
-            });
-            
-            renderer.domElement.addEventListener('mouseup', (event) => {
-                const clickDuration = Date.now() - mouseDownTime;
-                const isClick = !isDragging && clickDuration < 200;
+            renderer.domElement.addEventListener('click', (event) => {
+                // Only handle if it's a quick click (not a drag)
+                const timeSinceMouseDown = Date.now() - lastMouseDown.time;
+                const dx = Math.abs(event.clientX - lastMouseDown.x);
+                const dy = Math.abs(event.clientY - lastMouseDown.y);
                 
-                if (isClick && mouseDownPos) {
-                    // Calculate mouse position in normalized device coordinates
-                    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-                    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-                    // Update raycaster with current camera and mouse position
-                    raycaster.setFromCamera(mouse, camera);
-                    const intersects = raycaster.intersectObjects(nodeMeshes);
-
-                    if (intersects.length > 0) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        const clickedMesh = intersects[0].object;
-                        const nodeIndex = clickedMesh.userData.nodeIndex;
-                        if (nodeIndex !== undefined && nodes[nodeIndex]) {
-                            console.log('Node clicked:', nodeIndex, nodes[nodeIndex].episode.episode_name);
-                            showNodeDetails(nodeIndex);
-                        }
-                    }
+                if (timeSinceMouseDown < 300 && dx < 5 && dy < 5) {
+                    console.log('Click detected, checking for node intersection');
+                    handleNodeClick(event);
                 }
-                
-                mouseDownPos = null;
-                isDragging = false;
             });
             
             window.addEventListener('resize', onWindowResize);
