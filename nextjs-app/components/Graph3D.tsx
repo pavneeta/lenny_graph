@@ -43,9 +43,9 @@ export default function Graph3D({ nodes, edges, onNodeClick, paused = false }: G
     if (!containerRef.current) return;
 
     // Initialize Three.js
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a0a0a);
-    sceneRef.current = scene;
+                    const scene = new THREE.Scene();
+                    scene.background = new THREE.Color(0x0f0f0f); // Match updated background
+                    sceneRef.current = scene;
 
     const width = containerRef.current.clientWidth;
     const height = containerRef.current.clientHeight;
@@ -147,9 +147,9 @@ export default function Graph3D({ nodes, edges, onNodeClick, paused = false }: G
         ]);
         
         const material = new THREE.LineBasicMaterial({
-          color: 0x4a9eff,
+          color: 0x0066ff, // Substack blue, more subtle
           transparent: true,
-          opacity: 0.3
+          opacity: 0.2 // More subtle for professional look
         });
         
         const line = new THREE.Line(geometry, material);

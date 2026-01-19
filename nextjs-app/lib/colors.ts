@@ -1,20 +1,21 @@
-// Category-based color mapping for nodes
+// Category-based color mapping for nodes - Lenny's Newsletter color scheme
+// Based on Substack's professional palette with primary blue accent
 export const categoryColors: Record<string, number> = {
-  'Product': 0x4a9eff,      // Blue
-  'Growth': 0xffe66d,       // Yellow
-  'Leadership': 0x4ecdc4,  // Teal
-  'Design': 0x95e1d3,      // Light green
-  'Engineering': 0xa8e6cf, // Green
-  'Strategy': 0xff9ff3,    // Pink
-  'Marketing': 0x54a0ff,   // Light blue
-  'Data': 0x5f27cd,        // Purple
-  'Customer': 0x00d2d3,    // Cyan
-  'Startup': 0xff6348,     // Red-orange
-  'Ai': 0xffa502,          // Orange
-  'Monetization': 0xff6b6b, // Red
-  'Hiring': 0x6c5ce7,      // Indigo
-  'Communication': 0xfd79a8, // Rose
-  'Default': 0x888888      // Gray
+  'Product': 0x0066ff,      // Substack primary blue
+  'Growth': 0x00a8ff,       // Bright blue
+  'Leadership': 0x5b8def,   // Soft blue
+  'Design': 0x7b9acc,      // Muted blue-gray
+  'Engineering': 0x4a90e2,  // Medium blue
+  'Strategy': 0x6c7ae0,     // Periwinkle blue
+  'Marketing': 0x5dade2,    // Sky blue
+  'Data': 0x5499c7,        // Steel blue
+  'Customer': 0x48cae4,     // Cyan blue
+  'Startup': 0x0070f3,      // Vercel blue (Substack-like)
+  'Ai': 0x3b82f6,          // Modern blue
+  'Monetization': 0x2563eb, // Deep blue
+  'Hiring': 0x6366f1,      // Indigo blue
+  'Communication': 0x818cf8, // Light indigo
+  'Default': 0x6b7280      // Gray (Tailwind gray-500)
 };
 
 export function getCategoryColor(categories: string[]): number {
