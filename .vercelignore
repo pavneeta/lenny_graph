@@ -1,0 +1,39 @@
+# Exclude large model files
+scripts/checkpoint/
+scripts/checkpoint_v2/
+
+# Exclude Next.js app (not needed for static deployment)
+nextjs-app/
+
+# Exclude large data files
+data/train_data.jsonl
+data/val_data.jsonl
+data/batch_inference.jsonl
+data/together_batch_input*.jsonl
+data/job-*.jsonl
+
+# Exclude Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Exclude node_modules
+node_modules/
+.next/
+.vercel/
+
+# Exclude IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Exclude OS files
+.DS_Store
+Thumbs.db
+
+# Exclude logs
+*.log
+
