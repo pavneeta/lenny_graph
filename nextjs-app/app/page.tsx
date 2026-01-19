@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import Graph3D from '@/components/Graph3D';
 import FilterPanel from '@/components/FilterPanel';
 import NodeDetails from '@/components/NodeDetails';
@@ -28,21 +28,27 @@ export default function Home() {
     });
   }, []);
 
-  useEffect(() => {
-    if (episodes.length === 0) return;
-    
-    const { nodes: initialNodes, edges: initialEdges } = createGraph(episodes);
-    const { nodes: filteredNodes, edges: filteredEdges } = filterGraph(
-      initialNodes,
-      initialEdges,
+  // Memoize the full graph to avoid recalculating on every render
+  const fullGraph = useMemo(() => {
+    if (episodes.length === 0) return { nodes: [], edges: [] };
+    return createGraph(episodes);
+  }, [episodes]);
+
+  // Memoize filtered graph
+  const filteredGraph = useMemo(() => {
+    return filterGraph(
+      fullGraph.nodes,
+      fullGraph.edges,
       selectedCategories,
       selectedFunctions,
       selectedAudiences
     );
-    
-    setNodes(filteredNodes);
-    setEdges(filteredEdges);
-  }, [episodes, selectedCategories, selectedFunctions, selectedAudiences]);
+  }, [fullGraph, selectedCategories, selectedFunctions, selectedAudiences]);
+
+  useEffect(() => {
+    setNodes(filteredGraph.nodes);
+    setEdges(filteredGraph.edges);
+  }, [filteredGraph]);
 
   const handleCategoryChange = (category: string, selected: boolean) => {
     setSelectedCategories(prev => {
@@ -86,19 +92,12 @@ export default function Home() {
     setSelectedAudiences(new Set());
   };
 
-  const handleNodeClick = (nodeIndex: number) => {
-    const filteredEpisodes = filterGraph(
-      createGraph(episodes).nodes,
-      createGraph(episodes).edges,
-      selectedCategories,
-      selectedFunctions,
-      selectedAudiences
-    ).nodes;
-    
-    if (filteredEpisodes[nodeIndex]) {
-      setSelectedNode(filteredEpisodes[nodeIndex].episode);
+  const handleNodeClick = useCallback((nodeIndex: number) => {
+    // Use the current filtered nodes directly
+    if (nodes[nodeIndex]) {
+      setSelectedNode(nodes[nodeIndex].episode);
     }
-  };
+  }, [nodes]);
 
   if (loading) {
     return (

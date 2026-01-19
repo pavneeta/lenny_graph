@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { Node, Edge } from '@/types';
+import { getCategoryColor } from '@/lib/colors';
 
 interface Graph3DProps {
   nodes: Node[];
@@ -74,10 +75,11 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
 
       const currentNodes = nodesRef.current;
       const currentEdges = edgesRef.current;
-      const nodeColor = 0x4a9eff;
 
-      // Create nodes
+      // Create nodes with category-based colors
       currentNodes.forEach((node, index) => {
+        const nodeColor = getCategoryColor(node.episode.categories);
+        
         const geometry = new THREE.SphereGeometry(3.0, 16, 16);
         const material = new THREE.MeshPhongMaterial({
           color: nodeColor,
@@ -87,7 +89,7 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
         });
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(...node.position);
-        mesh.userData = { nodeIndex: index };
+        mesh.userData = { nodeIndex: index, episode: node.episode };
         
         // Add glow
         const glowGeometry = new THREE.SphereGeometry(3.5, 16, 16);
@@ -103,7 +105,7 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
         nodeMeshesRef.current.push(mesh);
       });
 
-      // Create edges
+      // Create edges (use neutral gray color)
       currentEdges.forEach(edge => {
         const source = currentNodes[edge.source];
         const target = currentNodes[edge.target];
@@ -114,7 +116,7 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
         ]);
         
         const material = new THREE.LineBasicMaterial({
-          color: nodeColor,
+          color: 0x4a9eff,
           transparent: true,
           opacity: 0.3
         });
@@ -142,7 +144,21 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
       if (intersects.length > 0 && onNodeClick) {
         const clickedMesh = intersects[0].object as THREE.Mesh;
         const nodeIndex = clickedMesh.userData.nodeIndex;
-        onNodeClick(nodeIndex);
+        // Pass the episode directly to avoid index mismatch issues
+        if (clickedMesh.userData.episode) {
+          // Find the actual index in current filtered nodes
+          const currentNodes = nodesRef.current;
+          const foundIndex = currentNodes.findIndex(
+            n => n.episode.episode_name === clickedMesh.userData.episode.episode_name
+          );
+          if (foundIndex !== -1) {
+            onNodeClick(foundIndex);
+          } else {
+            onNodeClick(nodeIndex);
+          }
+        } else {
+          onNodeClick(nodeIndex);
+        }
       }
     };
 
@@ -313,16 +329,35 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
     const scene = sceneRef.current;
     const currentNodes = nodesRef.current;
     const currentEdges = edgesRef.current;
-    const nodeColor = 0x4a9eff;
 
     // Clear existing
-    nodeMeshesRef.current.forEach(mesh => scene.remove(mesh));
-    edgeLinesRef.current.forEach(line => scene.remove(line));
+    nodeMeshesRef.current.forEach(mesh => {
+      mesh.geometry.dispose();
+      const material = mesh.material;
+      if (Array.isArray(material)) {
+        material.forEach(mat => mat.dispose());
+      } else {
+        material.dispose();
+      }
+      scene.remove(mesh);
+    });
+    edgeLinesRef.current.forEach(line => {
+      line.geometry.dispose();
+      const material = line.material;
+      if (Array.isArray(material)) {
+        material.forEach(mat => mat.dispose());
+      } else {
+        material.dispose();
+      }
+      scene.remove(line);
+    });
     nodeMeshesRef.current = [];
     edgeLinesRef.current = [];
 
-    // Recreate nodes
+    // Recreate nodes with category colors
     currentNodes.forEach((node, index) => {
+      const nodeColor = getCategoryColor(node.episode.categories);
+      
       const geometry = new THREE.SphereGeometry(3.0, 16, 16);
       const material = new THREE.MeshPhongMaterial({
         color: nodeColor,
@@ -332,7 +367,7 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
       });
       const mesh = new THREE.Mesh(geometry, material);
       mesh.position.set(...node.position);
-      mesh.userData = { nodeIndex: index };
+      mesh.userData = { nodeIndex: index, episode: node.episode };
       
       const glowGeometry = new THREE.SphereGeometry(3.5, 16, 16);
       const glowMaterial = new THREE.MeshBasicMaterial({
@@ -358,7 +393,7 @@ export default function Graph3D({ nodes, edges, onNodeClick }: Graph3DProps) {
       ]);
       
       const material = new THREE.LineBasicMaterial({
-        color: nodeColor,
+        color: 0x4a9eff,
         transparent: true,
         opacity: 0.3
       });
